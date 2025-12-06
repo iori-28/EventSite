@@ -1,0 +1,241 @@
+# EventSite – Web Sistem Manajemen Event Mahasiswa
+
+Dokumentasi resmi untuk struktur project, alur kerja, dan hubungan antar komponen dalam aplikasi **EventSite**.
+
+---
+
+# 📁 Struktur Direktori
+
+```
+EventSite/
+├── config/
+│   ├── env.php
+│   └── db.php
+│
+├── controllers/
+│   ├── AuthController.php
+│   ├── EventController.php
+│   ├── OrganizationController.php
+│   ├── ParticipantController.php
+│   └── NotificationController.php
+│
+├── models/
+│   ├── User.php
+│   ├── Organization.php
+│   ├── Event.php
+│   ├── Participant.php
+│   ├── Notification.php
+│   └── Certificate.php
+│
+├── services/
+│   ├── NotificationService.php
+│   └── GoogleCalendarService.php
+│
+├── public/
+│   ├── index.php
+│   ├── login.php
+│   ├── dashboard.php
+│   └── api/
+│       ├── auth.php
+│       ├── events.php
+│       ├── organizations.php
+│       ├── participants.php
+│       └── notifications.php
+│
+├── .env
+└── vendor/
+```
+
+---
+
+# 🔍 Penjelasan Folder & Hubungan Antar Komponen
+
+## **1. config/**
+
+#### `env.php`
+
+* Memuat environment variable dari file `.env`.
+* Berisi konfigurasi sensitif seperti kredensial database & API key.
+
+#### `db.php`
+
+* Menginisialisasi koneksi database menggunakan **PDO**.
+* Dipanggil oleh *semua model*.
+
+**Alur:**
+
+```
+Controller → Model → db.php → Database
+```
+
+---
+
+## **2. models/**
+
+Model merepresentasikan tabel database dan berisi fungsi CRUD.
+
+### Model yang tersedia:
+
+* **User** → data akun & autentikasi
+* **Organization** → data organisasi penyelenggara event
+* **Event** → data event
+* **Participant** → pendaftaran peserta
+* **Notification** → log pengiriman email
+* **Certificate** → sertifikat peserta
+
+**Relasi antar model:**
+
+```
+User 1—* Participant *—1 Event *—1 Organization
+Event 1—* Notification
+Participant 1—1 Certificate
+```
+
+---
+
+## **3. controllers/**
+
+Menangani *logic aplikasi* dan request dari endpoint.
+
+### **AuthController**
+
+* Login, register, session handling
+* Memanggil model `User`
+
+### **EventController**
+
+* CRUD event
+* Memanggil model `Event` & `GoogleCalendarService`
+
+### **OrganizationController**
+
+* CRUD organisasi
+
+### **ParticipantController**
+
+* Pendaftaran peserta event
+* Memanggil `Participant`, `Event`, dan `NotificationService`
+
+### **NotificationController**
+
+* Mengambil log notifikasi
+* Mengirim notifikasi manual bila diperlukan
+
+**Alur umum:**
+
+```
+API → Controller → Model → DB
+                   ↳ Service (opsional)
+```
+
+---
+
+## **4. services/**
+
+Layer yang menangani integrasi eksternal.
+
+### **NotificationService.php**
+
+* Mengirim email (PHPMailer / SMTP)
+* Mencatat log ke model `Notification`
+
+### **GoogleCalendarService.php**
+
+* Sinkronisasi event ke Google Calendar API
+* Digunakan ketika event dibuat/diupdate
+
+**Flow Service:**
+
+```
+Controller → Service → API Eksternal
+                        ↓
+                     Model Log
+```
+
+---
+
+## **5. public/**
+
+File yang bisa diakses langsung oleh user.
+
+### File utama:
+
+* `index.php` — Homepage
+* `login.php` — Halaman login
+* `dashboard.php` — Halaman dashboard user / admin
+
+### **public/api/** (Endpoint AJAX)
+
+Semua request frontend dikirim ke file ini.
+
+| Endpoint            | Controller yang dipanggil |
+| ------------------- | ------------------------- |
+| `auth.php`          | AuthController            |
+| `events.php`        | EventController           |
+| `organizations.php` | OrganizationController    |
+| `participants.php`  | ParticipantController     |
+| `notifications.php` | NotificationController    |
+
+**Flow lengkap request browser:**
+
+```
+Browser → public/api/events.php → EventController → Event Model → DB
+```
+
+---
+
+## **6. vendor/**
+
+Folder hasil **Composer**. Berisi library seperti:
+
+* Google API Client
+* PHPMailer
+* Dotenv Loader
+
+---
+
+## **7. .env**
+
+Berisi configuration:
+
+* DB_USERNAME, DB_PASSWORD
+* SMTP_SERVER
+* GOOGLE_API_KEY
+* APP_URL
+
+Dipanggil oleh `config/env.php`.
+
+---
+
+# 🔗 Diagram Alur Kerja (MVC + Services)
+
+```
+              ┌──────────────────────────┐
+              │          User            │
+              └────────────┬─────────────┘
+                           │ HTTP Request
+                           ▼
+               ┌────────────────────────┐
+               │     public/api/*.php   │
+               └────────────┬──────────┘
+                           ▼
+                   ┌────────────────┐
+                   │   Controller   │
+                   └──────┬────────┘
+                          │
+          ┌───────────────┼────────────────┐
+          ▼                               ▼
+   ┌───────────────┐                ┌──────────────┐
+   │     Model      │                │    Service    │
+   └───────┬────────┘                └──────┬───────┘
+           ▼                                ▼
+   ┌───────────────┐                ┌──────────────┐
+   │    Database    │                │ API Eksternal │
+   └───────────────┘                └──────────────┘
+```
+
+---
+
+## **8. tes_...... dan adm_apprv_event**
+
+Folder ini berisi skrip untuk pengujian unit dan integrasi.
