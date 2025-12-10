@@ -1,72 +1,110 @@
 <?php
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
 class NotificationService
 {
-    public static function sendEmail($user_id, $toEmail, $subject, $message)
+    /* ============================================================
+       PRIVATE HELPERS
+    ============================================================ */
+
+    /** Ambil email berdasarkan user_id */
+    private static function getEmailByUserId($user_id)
     {
-        // if email not provided, fetch from users table
-        if (empty($toEmail) && $user_id) {
+        try {
             $db = Database::connect();
             $stmt = $db->prepare("SELECT email FROM users WHERE id = ?");
             $stmt->execute([$user_id]);
-            $row = $stmt->fetch();
-            if ($row) $toEmail = $row['email'];
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? $row['email'] : null;
+        } catch (PDOException $e) {
+            error_log("DB error getEmailByUserId: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /** Log ke tabel notifications */
+    private static function log($user_id, $type, $payload, $status)
+    {
+        try {
+            $db = Database::connect();
+            $stmt = $db->prepare("
+                INSERT INTO notifications (user_id, type, payload, status, send_at)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->execute([$user_id, $type, json_encode(["message" => $payload]), $status]);
+        } catch (PDOException $e) {
+            error_log("DB error logging notification: " . $e->getMessage());
+        }
+    }
+
+    /* ============================================================
+       PUBLIC FUNCTION — SEND EMAIL
+    ============================================================ */
+
+    public static function sendEmail($user_id, $toEmail, $subject, $message)
+    {
+        // jika email kosong → ambil dari user_id
+        if (empty($toEmail) && $user_id) {
+            $toEmail = self::getEmailByUserId($user_id);
         }
 
-        // if still empty, fail early
         if (empty($toEmail)) {
+            self::log($user_id, 'email', "Email kosong / tidak ditemukan", 'failed');
             return false;
         }
 
         $mail = new PHPMailer(true);
 
         try {
-            // SERVER
-            // debug off in production
-            $mail->SMTPDebug = 0;
+            /* SMTP SERVER */
             $mail->isSMTP();
             $mail->Host       = MAIL_HOST;
             $mail->SMTPAuth   = true;
             $mail->Username   = MAIL_USERNAME;
             $mail->Password   = MAIL_PASSWORD;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = MAIL_PORT;
 
-            // FROM & TO
+            // otomatis pilih secure mode berdasarkan port
+            if (MAIL_PORT == 465) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
+
+            $mail->Port       = MAIL_PORT;
+            $mail->SMTPDebug  = 2; // ubah ke 2 kalau mau debugging
+
+            /* FROM & TO */
             $mail->setFrom(MAIL_USERNAME, MAIL_FROM_NAME);
             $mail->addAddress($toEmail);
 
-            // CONTENT
+            /* CONTENT */
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;
+            $mail->AltBody = strip_tags($message);
 
+            /* SEND */
             $mail->send();
 
             self::log($user_id, 'email', $subject, 'sent');
             return true;
         } catch (Exception $e) {
-            // you can write error log to file for debugging:
-            error_log("Mail error: " . $mail->ErrorInfo);
+
+            $error = "Mailer Error: " . $mail->ErrorInfo;
+
+            // log error ke tabel notifications
+            self::log($user_id, 'email', $subject . " | " . $error, 'failed');
+
+            // log juga ke server error log
+            error_log("MAIL ERROR: " . $error);
+
             return false;
         }
-    }
-
-    private static function log($user_id, $type, $payload, $status)
-    {
-        $db = Database::connect();
-
-        $stmt = $db->prepare("
-            INSERT INTO notifications (user_id, type, payload, status, send_at)
-            VALUES (?, ?, ?, ?, NOW())
-        ");
-
-        $stmt->execute([$user_id, $type, $payload, $status]);
     }
 }

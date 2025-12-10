@@ -82,9 +82,9 @@ CREATE TABLE certificates (
 -- seed accounts
 INSERT INTO users (name, email, password, role)
 VALUES
-('Admin Demo', 'admin@example.com', '$2y$10$e0NRG6xLqE2oi6rQbq1ZKeOqYt2KcF1zAaWv3pKx0r3u6E9w4M8aG', 'admin'), -- password: admin123
-('Panitia Demo', 'panitia@example.com', '$2y$10$tQIwyvlH8N5lAX0pVZsbhOgqe9cWKA4eqUqjei3PoV2oQEUNf5.1G', 'panitia'), -- password: panitia123
-('User Demo', 'user@example.com', '$2y$10$ke3v9SmTWPRPr.rxQ9gyzuWm28nd3vM8w63xyCpH/bTVWD8.Dkj/C', 'user'); -- password: user123
+('Admin Demo', 'admin@example.com', '$2y$10$e0NRG6xLqE2oi6rQbq1ZKeOqYt2KcF1zAaWv3pKx0r3u6E9w4M8aG', 'admin'), 
+('Panitia Demo', 'panitia@example.com', '$2y$10$tQIwyvlH8N5lAX0pVZsbhOgqe9cWKA4eqUqjei3PoV2oQEUNf5.1G', 'panitia'), 
+('User Demo', 'user@example.com', '$2y$10$ke3v9SmTWPRPr.rxQ9gyzuWm28nd3vM8w63xyCpH/bTVWD8.Dkj/C', 'user'); 
 
 -- seed organization and event example
 INSERT INTO organizations (name, description, is_approved, created_by)

@@ -9,18 +9,12 @@ if (!isset($_SESSION['user'])) {
 $action = $_POST['action'] ?? '';
 
 /* =========================
-   CREATE EVENT (PANITIA)
+   CREATE EVENT
    ========================= */
 if ($action === 'create') {
 
     if ($_SESSION['user']['role'] === 'user') {
         die("FORBIDDEN");
-    }
-
-    $organization_id = $_SESSION['user']['organization_id'];
-
-    if (!$organization_id) {
-        die("NO_ORGANIZATION");
     }
 
     $status = ($_SESSION['user']['role'] === 'admin') ? 'approved' : 'pending';
@@ -32,7 +26,6 @@ if ($action === 'create') {
         'start_at' => $_POST['start_at'],
         'end_at' => $_POST['end_at'],
         'capacity' => $_POST['capacity'],
-        'organization_id' => $_POST['organization_id'],
         'status' => $status,
         'created_by' => $_SESSION['user']['id']
     ];
@@ -58,28 +51,43 @@ if ($action === 'approve') {
         die("ONLY_ADMIN");
     }
 
-    require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/services/NotificationService.php';
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
     require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/models/Event.php';
 
     $event_id = $_POST['id'];
 
     $event = Event::getById($event_id);
 
+    // jalankan approve dari EventController
     $status = EventController::approve($event_id);
 
     if ($status) {
-        NotificationService::sendEmail(
-            $event['created_by'],
-            $event['creator_email'],
-            "Event Disetujui",
-            "<b>Event kamu telah disetujui admin.</b>"
+
+        // --- buat payload untuk dicatat ke notifications ---
+        $payload = [
+            'event_id' => $event['id'],
+            'user_id'  => $event['created_by'],
+            'email'    => $event['creator_email']
+        ];
+
+        // --- kirim & catat notifikasi ---
+        $notif = NotificationController::createAndSend(
+            $event['created_by'],      // user yang dibuatkan notifikasi
+            'event_approved',          // type notifikasi
+            $payload,                  // payload JSON
+            "Event Disetujui",         // subject email
+            "<b>Event kamu telah disetujui admin.</b>" // body email
         );
 
-        echo "EVENT_APPROVED";
+        echo json_encode([
+            "status" => "EVENT_APPROVED",
+            "notif"  => $notif          // optional: buat debugging
+        ]);
     } else {
         echo "FAILED";
     }
 }
+
 
 /* =========================
    REGISTER EVENT (USER)
