@@ -9,15 +9,15 @@ class Notification
 
         $stmt = $db->prepare("
             INSERT INTO notifications (user_id, type, payload, status, send_at)
-            VALUES (?, ?, ?, ?, NULL)
+            VALUES (?, ?, ?, ?, NOW())
         ");
 
-        // payload simpan sebagai JSON string
-        $payload_json = is_string($payload) ? $payload : json_encode($payload);
-
-        $ok = $stmt->execute([$user_id, $type, $payload_json, $status]);
-
-        if ($ok) {
+        if ($stmt->execute([
+            $user_id,
+            $type,
+            json_encode($payload),  // payload harus JSON
+            $status
+        ])) {
             return $db->lastInsertId();
         }
 
@@ -29,15 +29,21 @@ class Notification
         $db = Database::connect();
 
         $stmt = $db->prepare("
-            UPDATE notifications SET status = ?, send_at = NOW() WHERE id = ?
+            UPDATE notifications SET status = ? WHERE id = ?
         ");
 
         return $stmt->execute([$status, $id]);
     }
 
-    public static function getPending()
+    public static function getByUser($user_id)
     {
         $db = Database::connect();
-        return $db->query("SELECT * FROM notifications WHERE status = 'pending'")->fetchAll();
+
+        $stmt = $db->prepare("
+            SELECT * FROM notifications WHERE user_id = ?
+        ");
+
+        $stmt->execute([$user_id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

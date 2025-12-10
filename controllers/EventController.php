@@ -13,11 +13,6 @@ class EventController
         return Event::getApproved();
     }
 
-    public static function getByOrg($org_id)
-    {
-        return Event::getByOrg($org_id);
-    }
-
     public static function approve($id)
     {
         return Event::approve($id);

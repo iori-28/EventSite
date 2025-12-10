@@ -1,5 +1,6 @@
 <?php
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/services/NotificationService.php';
 
 class Event
 {
@@ -9,8 +10,8 @@ class Event
 
         $stmt = $db->prepare("
             INSERT INTO events 
-            (title, description, location, start_at, end_at, capacity, organization_id, status, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (title, description, location, start_at, end_at, capacity, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         return $stmt->execute([
@@ -20,7 +21,6 @@ class Event
             $data['start_at'],
             $data['end_at'],
             $data['capacity'],
-            $data['organization_id'],
             $data['status'],
             $data['created_by']
         ]);
@@ -32,20 +32,40 @@ class Event
         return $db->query("SELECT * FROM events WHERE status = 'approved'")->fetchAll();
     }
 
-    public static function getByOrg($org_id)
-    {
-        $db = Database::connect();
-        $stmt = $db->prepare("SELECT * FROM events WHERE organization_id = ?");
-        $stmt->execute([$org_id]);
-        return $stmt->fetchAll();
-    }
 
     public static function approve($id)
     {
         $db = Database::connect();
-        $stmt = $db->prepare("UPDATE events SET status = 'approved' WHERE id = ?");
-        return $stmt->execute([$id]);
+
+        // ambil data event + pembuat event
+        $stmt = $db->prepare("
+        SELECT events.title, users.id AS user_id, users.email
+        FROM events
+        JOIN users ON users.id = events.created_by
+        WHERE events.id = ?
+    ");
+        $stmt->execute([$id]);
+        $event = $stmt->fetch();
+
+        if (!$event) {
+            return false;
+        }
+
+        // update status event
+        $update = $db->prepare("UPDATE events SET status = 'approved' WHERE id = ?");
+        $update->execute([$id]);
+
+        // 🔔 kirim email ke panitia
+        NotificationService::sendEmail(
+            $event['user_id'],
+            $event['email'],
+            "Event Disetujui",
+            "<b>Event kamu (<i>{$event['title']}</i>) telah disetujui admin.</b>"
+        );
+
+        return true;
     }
+
 
     public static function cancel($id)
     {
@@ -58,8 +78,8 @@ class Event
     {
         $db = Database::connect();
 
-        //  Cek kapasitas event
-        $stmt = $db->prepare("SELECT capacity, status FROM events WHERE id = ?");
+        // ambil kapasitas + judul event
+        $stmt = $db->prepare("SELECT title, capacity, status FROM events WHERE id = ?");
         $stmt->execute([$event_id]);
         $event = $stmt->fetch();
 
@@ -71,24 +91,33 @@ class Event
             return "EVENT_FULL";
         }
 
-        //  Insert participant
+        // insert participant
         $insert = $db->prepare("
         INSERT INTO participants (user_id, event_id)
         VALUES (?, ?)
-        ");
+    ");
 
         if (!$insert->execute([$user_id, $event_id])) {
             return "REGISTER_FAILED";
         }
 
-        //  Kurangi kapasitas event
+        // kurangi kapasitas event
         $update = $db->prepare("
         UPDATE events SET capacity = capacity - 1 WHERE id = ?
-        ");
+    ");
         $update->execute([$event_id]);
+
+        // 🔔 kirim notifikasi ke user
+        NotificationService::sendEmail(
+            $user_id,
+            "", // email diambil otomatis dari user_id
+            "Pendaftaran Berhasil",
+            "Kamu berhasil mendaftar event <b>{$event['title']}</b>."
+        );
 
         return "REGISTER_SUCCESS";
     }
+
 
     public static function getById($id)
     {
