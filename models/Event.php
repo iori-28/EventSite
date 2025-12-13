@@ -119,21 +119,39 @@ class Event
             return "EVENT_FULL";
         }
 
-        // insert participant
-        $insert = $db->prepare("
-        INSERT INTO participants (user_id, event_id)
-        VALUES (?, ?)
-    ");
+        // prevent duplicate registration to avoid DB constraint errors
+        $duplicateCheck = $db->prepare("
+            SELECT id FROM participants
+            WHERE user_id = ? AND event_id = ?
+        ");
+        $duplicateCheck->execute([$user_id, $event_id]);
 
-        if (!$insert->execute([$user_id, $event_id])) {
-            return "REGISTER_FAILED";
+        if ($duplicateCheck->fetch()) {
+            return "ALREADY_REGISTERED";
         }
 
-        // kurangi kapasitas event
-        $update = $db->prepare("
-        UPDATE events SET capacity = capacity - 1 WHERE id = ?
-    ");
-        $update->execute([$event_id]);
+        // insert participant
+        try {
+            $insert = $db->prepare("
+                INSERT INTO participants (user_id, event_id)
+                VALUES (?, ?)
+            ");
+            $insert->execute([$user_id, $event_id]);
+
+            // kurangi kapasitas event
+            $update = $db->prepare("
+                UPDATE events SET capacity = capacity - 1 WHERE id = ?
+            ");
+            $update->execute([$event_id]);
+        } catch (PDOException $e) {
+            // handle race condition or other DB issues gracefully
+            if ($e->getCode() === '23000') {
+                return "ALREADY_REGISTERED";
+            }
+
+            error_log("Failed to register user {$user_id} for event {$event_id}: " . $e->getMessage());
+            return "REGISTER_FAILED";
+        }
 
         // Notification will be handled by controller layer
         return "REGISTER_SUCCESS";
