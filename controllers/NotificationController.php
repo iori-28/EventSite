@@ -10,46 +10,70 @@ class NotificationController
      */
     public static function createAndSend($user_id, $type, $payload, $subject = '', $htmlBody = '')
     {
-        // 1) log sebagai pending
+        // Validate inputs
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            error_log("Invalid user_id in createAndSend: $user_id");
+            return ['db_id' => null, 'delivered' => false, 'error' => 'invalid_user_id'];
+        }
+
+        // 1) Create notification record as pending
         $id = Notification::create($user_id, $type, $payload, 'pending');
         if (!$id) {
+            error_log("Failed to create notification for user_id: $user_id, type: $type");
             return ['db_id' => null, 'delivered' => false, 'error' => 'db_insert_failed'];
         }
 
-        // 2) try send via NotificationService (email)
+        // 2) Extract email from payload if available
         $userEmail = null;
-        // if payload contains email, prefer that. otherwise NotificationService will need email sent separately.
         if (is_array($payload) && isset($payload['email'])) {
             $userEmail = $payload['email'];
         }
 
-        // Fallback: if user_id provided, NotificationService will look up email internally (we assume it needs email)
+        // 3) Attempt to send email via NotificationService
         $delivered = NotificationService::sendEmail($user_id, $userEmail ?? '', $subject, $htmlBody);
 
-        // 3) update status
-        Notification::updateStatus($id, $delivered ? 'sent' : 'failed');
+        // 4) Update notification status based on delivery result
+        $statusUpdated = Notification::updateStatus($id, $delivered ? 'sent' : 'failed');
 
-        return ['db_id' => $id, 'delivered' => $delivered];
+        if (!$statusUpdated) {
+            error_log("Failed to update notification status for id: $id");
+        }
+
+        return [
+            'db_id' => $id,
+            'delivered' => $delivered,
+            'status' => $delivered ? 'sent' : 'failed'
+        ];
     }
 
     public static function getUnreadCount($user_id)
     {
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            return 0;
+        }
+
         $db = Database::connect();
-        $stmt = $db->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND status = 'pending'");
         $stmt->execute([$user_id]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public static function getLatest($user_id, $limit = 5)
     {
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            return [];
+        }
+
+        $limit = max(1, min((int)$limit, 50)); // Limit between 1 and 50
+
         $db = Database::connect();
         $stmt = $db->prepare("
             SELECT * FROM notifications 
             WHERE user_id = ? 
-            ORDER BY created_at DESC 
-            LIMIT $limit
+            ORDER BY send_at DESC 
+            LIMIT ?
         ");
-        $stmt->execute([$user_id]);
+        $stmt->execute([$user_id, $limit]);
         return $stmt->fetchAll();
     }
 }

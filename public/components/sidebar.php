@@ -6,7 +6,7 @@ $role = $_SESSION['user']['role'];
 // Define menu items per role
 $menu_items = [];
 
-    if ($role === 'user') {
+if ($role === 'user') {
     $menu_items = [
         'Dashboard' => [
             'icon' => '🏠',
@@ -22,6 +22,11 @@ $menu_items = [];
             'icon' => '📅',
             'link' => 'index.php?page=user_my_events',
             'active' => 'user_my_events'
+        ],
+        'Sertifikat' => [
+            'icon' => '🏆',
+            'link' => 'index.php?page=user_certificates',
+            'active' => 'user_certificates'
         ],
         'Notifikasi' => [
             'icon' => '🔔',
@@ -84,6 +89,11 @@ $menu_items = [];
             'link' => 'index.php?page=admin_manage_events',
             'active' => 'admin_manage_events'
         ],
+        'Konfirmasi Kehadiran' => [
+            'icon' => '✅',
+            'link' => 'index.php?page=admin_confirm_attendance',
+            'active' => 'admin_confirm_attendance'
+        ],
         'Kelola Users' => [
             'icon' => '👥',
             'link' => 'index.php?page=admin_manage_users',
@@ -106,13 +116,13 @@ $menu_items = [];
 
     <div class="sidebar-menu">
         <div class="menu-label">Menu Utama</div>
-        
+
         <!-- LOGOUT SEBAGAI MENU ITEM PERTAMA -->
         <a href="logout.php" class="menu-item" style="background: #ffe6e6; color: #dc3545; border-left: 3px solid #dc3545;">
             <i>🚪</i>
             <span>LOGOUT</span>
         </a>
-        
+
         <?php foreach ($menu_items as $label => $item): ?>
             <a href="<?= $item['link'] ?>" class="menu-item <?= $current_page === $item['active'] ? 'active' : '' ?>">
                 <i><?= $item['icon'] ?></i>
@@ -138,27 +148,28 @@ $menu_items = [];
 <div class="mobile-overlay" onclick="toggleSidebar()"></div>
 
 <style>
-/* CSS khusus untuk sidebar component mobile */
-@media (max-width: 768px) {
-    .mobile-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 99;
+    /* CSS khusus untuk sidebar component mobile */
+    @media (max-width: 768px) {
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+        }
     }
-    .mobile-overlay.active {
-        display: block;
-    }
-}
 </style>
 
 <script>
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active');
-    document.querySelector('.mobile-overlay').classList.toggle('active');
-}
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.querySelector('.mobile-overlay').classList.toggle('active');
+    }
 </script>

@@ -2,6 +2,12 @@
 // Main Router
 session_start();
 
+// Session security
+if (empty($_SESSION['initiated'])) {
+    session_regenerate_id(true);
+    $_SESSION['initiated'] = true;
+}
+
 $page = $_GET['page'] ?? 'home';
 
 // Handle Logout
@@ -58,6 +64,7 @@ $allowed_pages = [
     'user_my_events',
     'user_notifications',
     'user_profile',
+    'user_certificates',
     'panitia_dashboard',
     'panitia_create_event',
     'panitia_my_events',
@@ -71,8 +78,9 @@ $allowed_pages = [
     'admin_manage_users',
     'admin_reports',
     'admin_notifications',
+    'admin_confirm_attendance',
+    'admin_edit_event',
     'adm_apprv_event',
-    // ... add any others if needed
 ];
 
 // Sanitize and check

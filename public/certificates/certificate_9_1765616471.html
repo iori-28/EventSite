@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate - Void</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Roboto:wght@300;400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .certificate {
+            background: white;
+            width: 1000px;
+            padding: 60px 80px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            border: 20px solid #f8f9fa;
+            outline: 2px solid #667eea;
+            outline-offset: -30px;
+        }
+        
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            right: 40px;
+            bottom: 40px;
+            border: 1px solid #ddd;
+            pointer-events: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 18px;
+            font-weight: 300;
+        }
+        
+        .divider {
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 30px auto;
+        }
+        
+        .content {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .content p {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .recipient-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: 56px;
+            color: #667eea;
+            margin: 30px 0;
+            font-weight: 400;
+        }
+        
+        .event-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            color: #2c3e50;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .signature {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .signature-line {
+            width: 200px;
+            border-top: 2px solid #333;
+            margin: 50px auto 10px;
+        }
+        
+        .signature p {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .signature .name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .seal {
+            position: absolute;
+            bottom: 80px;
+            right: 100px;
+            width: 120px;
+            height: 120px;
+            border: 4px solid #667eea;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .seal .seal-text {
+            font-size: 12px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+        
+        .issue-date {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .certificate {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="header">
+            <div class="logo">ES</div>
+            <h1>CERTIFICATE</h1>
+            <p>of Participation</p>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="content">
+            <p>This certificate is proudly presented to</p>
+            
+            <div class="recipient-name">Void</div>
+            
+            <p>For successfully participating in</p>
+            
+            <div class="event-title">event regis panitia</div>
+            
+            <p>Held on 21 December 2222</p>
+            
+            <p style="margin-top: 30px; font-size: 16px; font-style: italic; color: #7f8c8d;">
+                We appreciate your active participation and contribution to making this event a success.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <div class="signature">
+                <div class="signature-line"></div>
+                <p class="name">Event Organizer</p>
+                <p>EventSite Committee</p>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line"></div>
+                <p class="name">Administrator</p>
+                <p>EventSite Platform</p>
+            </div>
+        </div>
+        
+        <div class="seal">
+            <div class="seal-text">OFFICIAL<br>CERTIFICATE</div>
+        </div>
+        
+        <div class="issue-date">
+            Issued on: 13 December 2025
+        </div>
+    </div>
+</body>
+</html>

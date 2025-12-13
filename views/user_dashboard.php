@@ -12,33 +12,46 @@ $db = Database::connect();
 $user_id = $_SESSION['user']['id'];
 
 // Get Stats
+$stmt_registered = $db->prepare("SELECT COUNT(*) FROM participants WHERE user_id = ?");
+$stmt_registered->execute([$user_id]);
+
+$stmt_upcoming = $db->prepare("
+    SELECT COUNT(*) FROM participants p 
+    JOIN events e ON p.event_id = e.id 
+    WHERE p.user_id = ? AND e.start_at > NOW()
+");
+$stmt_upcoming->execute([$user_id]);
+
+$stmt_attended = $db->prepare("SELECT COUNT(*) FROM participants WHERE user_id = ? AND status = 'checked_in'");
+$stmt_attended->execute([$user_id]);
+
 $stats = [
-    'registered' => $db->query("SELECT COUNT(*) FROM participants WHERE user_id = $user_id")->fetchColumn(),
-    'upcoming' => $db->query("
-        SELECT COUNT(*) FROM participants p 
-        JOIN events e ON p.event_id = e.id 
-        WHERE p.user_id = $user_id AND e.start_at > NOW()
-    ")->fetchColumn(),
-    'attended' => $db->query("SELECT COUNT(*) FROM participants WHERE user_id = $user_id AND status = 'checked_in'")->fetchColumn()
+    'registered' => $stmt_registered->fetchColumn(),
+    'upcoming' => $stmt_upcoming->fetchColumn(),
+    'attended' => $stmt_attended->fetchColumn()
 ];
 
 // Get Upcoming Events (Limit 3)
-$upcoming_events = $db->query("
+$stmt_events = $db->prepare("
     SELECT e.*, p.status as payment_status 
     FROM events e 
     JOIN participants p ON e.id = p.event_id 
-    WHERE p.user_id = $user_id AND e.start_at > NOW() 
+    WHERE p.user_id = ? AND e.start_at > NOW() 
     ORDER BY e.start_at ASC 
     LIMIT 3
-")->fetchAll();
+");
+$stmt_events->execute([$user_id]);
+$upcoming_events = $stmt_events->fetchAll();
 
 // Get Recent Notifications (Limit 5)
-$notifications = $db->query("
+$stmt_notif = $db->prepare("
     SELECT * FROM notifications 
-    WHERE user_id = $user_id 
-    ORDER BY created_at DESC 
+    WHERE user_id = ? 
+    ORDER BY send_at DESC 
     LIMIT 5
-")->fetchAll();
+");
+$stmt_notif->execute([$user_id]);
+$notifications = $stmt_notif->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -137,7 +150,7 @@ $notifications = $db->query("
                                         <?= htmlspecialchars(json_decode($notif['payload'] ?? '{}', true)['message'] ?? 'Notifikasi baru') ?>
                                     </p>
                                     <span style="font-size: 11px; color: var(--text-muted);">
-                                        <?= date('d M H:i', strtotime($notif['created_at'])) ?>
+                                        <?= date('d M H:i', strtotime($notif['send_at'])) ?>
                                     </span>
                                 </div>
                             <?php endforeach; ?>

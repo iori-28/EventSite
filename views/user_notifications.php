@@ -15,7 +15,7 @@ $user_id = $_SESSION['user']['id'];
 $query = "
     SELECT * FROM notifications 
     WHERE user_id = :user_id 
-    ORDER BY created_at DESC 
+    ORDER BY send_at DESC 
     LIMIT 50
 ";
 
@@ -77,7 +77,7 @@ $notifications = $stmt->fetchAll();
                                             <?= htmlspecialchars($message) ?>
                                         </p>
                                         <span style="font-size: 12px; color: var(--text-muted);">
-                                            <?= date('d M Y, H:i', strtotime($notif['created_at'])) ?>
+                                            <?= date('d M Y, H:i', strtotime($notif['send_at'])) ?>
                                         </span>
                                     </div>
                                 </li>
