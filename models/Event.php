@@ -115,41 +115,43 @@ class Event
             return "EVENT_NOT_APPROVED";
         }
 
-        if ($event['capacity'] <= 0) {
-            return "EVENT_FULL";
-        }
-
-        // prevent duplicate registration to avoid DB constraint errors
-        $duplicateCheck = $db->prepare("
-            SELECT id FROM participants
-            WHERE user_id = ? AND event_id = ?
-        ");
-        $duplicateCheck->execute([$user_id, $event_id]);
-
-        if ($duplicateCheck->fetch()) {
-            return "ALREADY_REGISTERED";
-        }
-
-        // insert participant
+        // insert participant with capacity reservation
         try {
-            $insert = $db->prepare("
-                INSERT INTO participants (user_id, event_id)
-                VALUES (?, ?)
-            ");
-            $insert->execute([$user_id, $event_id]);
+            $db->beginTransaction();
 
-            // kurangi kapasitas event
+            // reserve capacity atomically
             $update = $db->prepare("
-                UPDATE events SET capacity = capacity - 1 WHERE id = ?
+                UPDATE events SET capacity = capacity - 1 
+                WHERE id = ? AND capacity > 0
             ");
             $update->execute([$event_id]);
-        } catch (PDOException $e) {
-            // handle race condition or other DB issues gracefully
-            if ($e->getCode() === '23000') {
+
+            if ($update->rowCount() === 0) {
+                $db->rollBack();
+                return "EVENT_FULL";
+            }
+
+            $insert = $db->prepare("
+                INSERT IGNORE INTO participants (user_id, event_id)
+                VALUES (?, ?)
+            ");
+            if (!$insert->execute([$user_id, $event_id])) {
+                $db->rollBack();
+                return "REGISTER_FAILED";
+            }
+
+            if ($insert->rowCount() === 0) {
+                $db->rollBack();
                 return "ALREADY_REGISTERED";
             }
 
-            error_log("Failed to register user {$user_id} for event {$event_id}: " . $e->getMessage());
+            $db->commit();
+        } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+
+            error_log("Failed to register participant due to database error");
             return "REGISTER_FAILED";
         }
 
