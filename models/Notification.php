@@ -5,6 +5,17 @@ class Notification
 {
     public static function create($user_id, $type, $payload, $status = 'pending')
     {
+        // Validate inputs
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            error_log("Invalid user_id in Notification::create: $user_id");
+            return false;
+        }
+
+        if (empty($type)) {
+            error_log("Empty type in Notification::create for user_id: $user_id");
+            return false;
+        }
+
         $db = Database::connect();
 
         $stmt = $db->prepare("
@@ -26,6 +37,17 @@ class Notification
 
     public static function updateStatus($id, $status)
     {
+        // Validate inputs
+        if (!is_numeric($id) || $id <= 0) {
+            error_log("Invalid id in Notification::updateStatus: $id");
+            return false;
+        }
+
+        if (!in_array($status, ['pending', 'sent', 'failed'])) {
+            error_log("Invalid status in Notification::updateStatus: $status");
+            return false;
+        }
+
         $db = Database::connect();
 
         $stmt = $db->prepare("
@@ -37,6 +59,11 @@ class Notification
 
     public static function getByUser($user_id)
     {
+        // Validate input
+        if (!is_numeric($user_id) || $user_id <= 0) {
+            return [];
+        }
+
         $db = Database::connect();
 
         $stmt = $db->prepare("

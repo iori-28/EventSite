@@ -20,9 +20,26 @@ if ($action === 'approve') {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
     require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/models/Event.php';
 
-    $event_id = $_POST['id'];
+    // Validate event_id
+    $event_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+
+    if (!$event_id || $event_id <= 0) {
+        header('Location: ../index.php?page=adm_apprv_event&msg=invalid_id');
+        exit;
+    }
 
     $event = Event::getById($event_id);
+
+    if (!$event) {
+        header('Location: ../index.php?page=adm_apprv_event&msg=event_not_found');
+        exit;
+    }
+
+    // Check if already approved
+    if ($event['status'] === 'approved') {
+        header('Location: ../index.php?page=adm_apprv_event&msg=already_approved');
+        exit;
+    }
 
     // jalankan approve dari EventController
     $status = EventController::approve($event_id);
@@ -74,7 +91,13 @@ if ($action === 'reject') {
     require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
     require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/models/Event.php';
 
-    $event_id = $_POST['id'];
+    // Validate event_id
+    $event_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+
+    if (!$event_id || $event_id <= 0) {
+        header('Location: ../index.php?page=adm_apprv_event&msg=invalid_id');
+        exit;
+    }
     $event = Event::getById($event_id);
 
     if (EventController::reject($event_id)) {

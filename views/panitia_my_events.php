@@ -75,14 +75,23 @@ $events = $stmt->fetchAll();
                                         <?= $event['capacity'] ?>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                                        <span class="badge badge-<?= $event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning') ?>">
-                                            <?= ucfirst($event['status']) ?>
+                                        <span class="badge badge-<?= $event['status'] === 'completed' ? 'info' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning')) ?>">
+                                            <?= $event['status'] === 'completed' ? 'Selesai' : ucfirst($event['status']) ?>
                                         </span>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
                                         <div class="d-flex gap-2">
                                             <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">View</a>
+
+                                            <?php if ($event['status'] !== 'completed'): ?>
+                                                <a href="index.php?page=panitia_edit_event&id=<?= $event['id'] ?>" class="btn btn-success btn-sm">✏️ Edit</a>
+                                            <?php endif; ?>
+
                                             <a href="index.php?page=panitia_participants&event_id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">Peserta</a>
+
+                                            <?php if ($event['status'] === 'approved' && strtotime($event['end_at']) < time()): ?>
+                                                <button onclick="completeEvent(<?= $event['id'] ?>)" class="btn btn-info btn-sm">✅ Selesaikan</button>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
@@ -98,6 +107,35 @@ $events = $stmt->fetchAll();
             <?php endif; ?>
         </main>
     </div>
+
+    <script>
+        function completeEvent(eventId) {
+            if (!confirm('Apakah Anda yakin event ini sudah selesai?\n\nSetelah diselesaikan:\n- Sertifikat akan otomatis digenerate untuk peserta yang hadir\n- Notifikasi akan dikirim ke semua peserta yang hadir\n- Status event tidak dapat diubah lagi')) {
+                return;
+            }
+
+            fetch('api/events.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: 'action=complete&event_id=' + eventId
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data === 'SUCCESS') {
+                        alert('Event berhasil diselesaikan! Sertifikat sedang digenerate dan notifikasi dikirim ke peserta.');
+                        location.reload();
+                    } else {
+                        alert('Gagal menyelesaikan event: ' + data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menyelesaikan event');
+                });
+        }
+    </script>
 </body>
 
 </html>

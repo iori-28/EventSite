@@ -13,34 +13,47 @@ $user_id = $_SESSION['user']['id'];
 
 // Get Stats
 // Note: In real app, we should check organization_id, but for now assuming event created_by user
+$stmt1 = $db->prepare("SELECT COUNT(*) FROM events WHERE created_by = ?");
+$stmt1->execute([$user_id]);
+
+$stmt2 = $db->prepare("SELECT COUNT(*) FROM events WHERE created_by = ? AND start_at > NOW()");
+$stmt2->execute([$user_id]);
+
+$stmt3 = $db->prepare("
+    SELECT COUNT(*) FROM participants p 
+    JOIN events e ON p.event_id = e.id 
+    WHERE e.created_by = ?
+");
+$stmt3->execute([$user_id]);
+
 $stats = [
-    'total_events' => $db->query("SELECT COUNT(*) FROM events WHERE created_by = $user_id")->fetchColumn(),
-    'active_events' => $db->query("SELECT COUNT(*) FROM events WHERE created_by = $user_id AND start_at > NOW()")->fetchColumn(),
-    'total_participants' => $db->query("
-        SELECT COUNT(*) FROM participants p 
-        JOIN events e ON p.event_id = e.id 
-        WHERE e.created_by = $user_id
-    ")->fetchColumn()
+    'total_events' => $stmt1->fetchColumn(),
+    'active_events' => $stmt2->fetchColumn(),
+    'total_participants' => $stmt3->fetchColumn()
 ];
 
 // Get Recent Events created by Panitia
-$recent_events = $db->query("
+$stmt_events = $db->prepare("
     SELECT * FROM events 
-    WHERE created_by = $user_id 
+    WHERE created_by = ? 
     ORDER BY created_at DESC 
     LIMIT 5
-")->fetchAll();
+");
+$stmt_events->execute([$user_id]);
+$recent_events = $stmt_events->fetchAll();
 
 // Get Recent Registrations
-$recent_participants = $db->query("
-    SELECT p.*, u.name as user_name, e.title as event_title 
-    FROM participants p 
+$stmt_parts = $db->prepare("
+    SELECT p.*, e.title as event_title, u.name as user_name 
+    FROM participants p
     JOIN events e ON p.event_id = e.id 
     JOIN users u ON p.user_id = u.id 
-    WHERE e.created_by = $user_id 
+    WHERE e.created_by = ? 
     ORDER BY p.registered_at DESC 
     LIMIT 5
-")->fetchAll();
+");
+$stmt_parts->execute([$user_id]);
+$recent_participants = $stmt_parts->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">

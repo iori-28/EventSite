@@ -166,6 +166,77 @@ $stats = [
         </div>
     </section>
 
+    <!-- About Section -->
+    <section id="about" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 20px; text-align: center;">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <h2 style="font-size: 42px; margin-bottom: 30px; font-weight: 700;">Tentang EventSite</h2>
+            <p style="font-size: 18px; line-height: 1.8; margin-bottom: 20px;">
+                EventSite adalah platform manajemen acara terpadu yang dirancang untuk memudahkan pengguna menemukan, membuat, dan mengelola event dengan efisien. Kami berkomitmen untuk menciptakan ekosistem event yang inklusif dan transparan.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-top: 50px;">
+                <div>
+                    <div style="font-size: 40px; margin-bottom: 10px;">📅</div>
+                    <h4 style="margin-bottom: 10px;">Manajemen Mudah</h4>
+                    <p style="font-size: 14px; opacity: 0.9;">Kelola event Anda dengan antarmuka yang intuitif dan user-friendly.</p>
+                </div>
+                <div>
+                    <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                    <h4 style="margin-bottom: 10px;">Penemuan Event</h4>
+                    <p style="font-size: 14px; opacity: 0.9;">Temukan event yang sesuai dengan minat dan jadwal Anda dengan mudah.</p>
+                </div>
+                <div>
+                    <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                    <h4 style="margin-bottom: 10px;">Analitik Real-time</h4>
+                    <p style="font-size: 14px; opacity: 0.9;">Pantau peserta dan performa event dengan dashboard analytics lengkap.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" style="background: #f8f9fa; padding: 80px 20px;">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <h2 style="font-size: 42px; margin-bottom: 50px; font-weight: 700; text-align: center; color: var(--text-dark);">Hubungi Kami</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;">
+                <div>
+                    <h3 style="margin-bottom: 30px; color: var(--text-dark);">Informasi Kontak</h3>
+                    <div style="margin-bottom: 30px;">
+                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px;">
+                            <div style="font-size: 24px;">📧</div>
+                            <div>
+                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Email</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">support@eventsite.com</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px;">
+                            <div style="font-size: 24px;">📞</div>
+                            <div>
+                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Telepon</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">+62 (021) 1234-5678</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: flex-start; gap: 15px;">
+                            <div style="font-size: 24px;">📍</div>
+                            <div>
+                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Kantor</h4>
+                                <p style="color: var(--text-muted); font-size: 14px;">Jl. Teknologi No. 123, Jakarta, Indonesia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 30px; color: var(--text-dark);">Kirim Pesan</h3>
+                    <form style="display: flex; flex-direction: column; gap: 15px;">
+                        <input type="text" placeholder="Nama Anda" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px;" required>
+                        <input type="email" placeholder="Email Anda" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px;" required>
+                        <textarea placeholder="Pesan Anda" rows="4" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;" required></textarea>
+                        <button type="submit" class="btn btn-primary" style="padding: 12px; border: none; cursor: pointer; font-weight: 600;">Kirim Pesan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <?php include 'components/footer.php'; ?>
 </body>
 

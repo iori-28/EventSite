@@ -12,11 +12,13 @@ $db = Database::connect();
 $user_id = $_SESSION['user']['id'];
 
 // Get notifications
-$notifications = $db->query("
+$stmt = $db->prepare("
     SELECT * FROM notifications 
-    WHERE user_id = $user_id 
-    ORDER BY created_at DESC
-")->fetchAll();
+    WHERE user_id = ? 
+    ORDER BY send_at DESC
+");
+$stmt->execute([$user_id]);
+$notifications = $stmt->fetchAll();
 
 // Mark as read (optional, simple logic)
 // $db->query("UPDATE notifications SET is_read = 1 WHERE user_id = $user_id");
@@ -58,7 +60,7 @@ $notifications = $db->query("
                                     <div>
                                         <h4 style="margin: 0 0 5px; font-size: 16px;"><?= htmlspecialchars($notif['subject']) ?></h4>
                                         <div style="color: #555; font-size: 14px; margin-bottom: 5px;"><?= $notif['message'] ?></div> <!-- Allow HTML in message -->
-                                        <small class="text-muted"><?= date('d M Y H:i', strtotime($notif['created_at'])) ?></small>
+                                        <small class="text-muted"><?= date('d M Y H:i', strtotime($notif['send_at'])) ?></small>
                                     </div>
                                 </li>
                             <?php endforeach; ?>

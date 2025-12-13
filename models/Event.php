@@ -35,6 +35,11 @@ class Event
 
     public static function approve($id)
     {
+        // Validate input
+        if (!is_numeric($id) || $id <= 0) {
+            return false;
+        }
+
         $db = Database::connect();
 
         // ambil data event + pembuat event
@@ -55,14 +60,7 @@ class Event
         $update = $db->prepare("UPDATE events SET status = 'approved' WHERE id = ?");
         $update->execute([$id]);
 
-        // 🔔 kirim email ke panitia
-        NotificationService::sendEmail(
-            $event['user_id'],
-            $event['email'],
-            "Event Disetujui",
-            "<b>Event kamu (<i>{$event['title']}</i>) telah disetujui admin.</b>"
-        );
-
+        // Notification handled by controller via NotificationController::createAndSend
         return true;
     }
 
@@ -93,14 +91,7 @@ class Event
         $update = $db->prepare("UPDATE events SET status = 'rejected' WHERE id = ?");
         $update->execute([$id]);
 
-        // 🔔 kirim email ke panitia
-        NotificationService::sendEmail(
-            $event['user_id'],
-            $event['email'],
-            "Event Ditolak",
-            "<b>Maaf, event kamu (<i>{$event['title']}</i>) ditolak oleh admin.</b>"
-        );
-
+        // Notification handled by controller via NotificationController::createAndSend
         return true;
     }
 
@@ -144,14 +135,7 @@ class Event
     ");
         $update->execute([$event_id]);
 
-        // 🔔 kirim notifikasi ke user
-        NotificationService::sendEmail(
-            $user_id,
-            "", // email diambil otomatis dari user_id
-            "Pendaftaran Berhasil",
-            "Kamu berhasil mendaftar event <b>{$event['title']}</b>."
-        );
-
+        // Notification will be handled by controller layer
         return "REGISTER_SUCCESS";
     }
 

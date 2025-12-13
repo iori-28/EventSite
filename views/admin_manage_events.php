@@ -64,6 +64,7 @@ $events = $stmt->fetchAll();
                         <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>Semua Status</option>
                         <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Menunggu Review</option>
                         <option value="approved" <?= $status === 'approved' ? 'selected' : '' ?>>Disetujui</option>
+                        <option value="completed" <?= $status === 'completed' ? 'selected' : '' ?>>Selesai</option>
                         <option value="rejected" <?= $status === 'rejected' ? 'selected' : '' ?>>Ditolak</option>
                     </select>
 
@@ -101,13 +102,14 @@ $events = $stmt->fetchAll();
                                             <?= date('d M Y', strtotime($event['start_at'])) ?>
                                         </td>
                                         <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                                            <span class="badge badge-<?= $event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning') ?>">
-                                                <?= ucfirst($event['status']) ?>
+                                            <span class="badge badge-<?= $event['status'] === 'completed' ? 'info' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning')) ?>">
+                                                <?= $event['status'] === 'completed' ? 'Selesai' : ucfirst($event['status']) ?>
                                             </span>
                                         </td>
                                         <td style="padding: 15px; border-bottom: 1px solid #eee;">
                                             <div class="d-flex gap-2">
                                                 <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">Review</a>
+                                                <a href="index.php?page=admin_edit_event&id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
 
                                                 <?php if ($event['status'] === 'pending'): ?>
                                                     <form method="POST" action="api/event_approval.php" style="display: inline;">

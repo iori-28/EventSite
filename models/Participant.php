@@ -5,6 +5,11 @@ class Participant
 {
     public static function register($user_id, $event_id)
     {
+        // Validate inputs
+        if (!is_numeric($user_id) || $user_id <= 0 || !is_numeric($event_id) || $event_id <= 0) {
+            return "INVALID_INPUT";
+        }
+
         $db = Database::connect();
 
         // ✅ Ambil data event + status
@@ -49,6 +54,11 @@ class Participant
 
     public static function cancel($user_id, $event_id)
     {
+        // Validate inputs
+        if (!is_numeric($user_id) || $user_id <= 0 || !is_numeric($event_id) || $event_id <= 0) {
+            return false;
+        }
+
         $db = Database::connect();
         $stmt = $db->prepare("
             DELETE FROM participants

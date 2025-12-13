@@ -9,10 +9,12 @@
 
             <div class="footer-links">
                 <h4>Quick Links</h4>
-                <a href="/EventSite/public/home.php">Beranda</a>
-                <a href="/EventSite/public/events.php">Jelajahi Event</a>
-                <a href="/EventSite/public/login.php">Masuk</a>
-                <a href="/EventSite/public/register.php">Daftar</a>
+                <a href="index.php?page=home">Beranda</a>
+                <a href="index.php?page=events">Jelajahi Event</a>
+                <a href="index.php?page=home#about">Tentang Kami</a>
+                <a href="index.php?page=home#contact">Kontak</a>
+                <a href="index.php?page=login">Masuk</a>
+                <a href="index.php?page=register">Daftar</a>
             </div>
 
             <div class="footer-contact">

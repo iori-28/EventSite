@@ -33,7 +33,7 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
             <div id="notif-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 300px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
                 <div style="padding: 10px 15px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between;">
                     <span>Notifikasi</span>
-                    <a href="notifications.php" style="font-size: 12px; color: var(--primary-color); text-decoration: none;">Lihat Semua</a>
+                    <a href="index.php?page=user_notifications" style="font-size: 12px; color: var(--primary-color); text-decoration: none;">Lihat Semua</a>
                 </div>
                 <div class="notif-items" style="max-height: 300px; overflow-y: auto;">
                     <?php if (count($latest_notifs) > 0): ?>
@@ -63,10 +63,10 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
                                     $message = $n['message'] ?? 'Notifikasi baru';
                             }
                         ?>
-                            <div style="padding: 10px 15px; border-bottom: 1px solid #eee; background: <?= $n['is_read'] ? 'white' : '#f8f9fa' ?>;">
+                            <div style="padding: 10px 15px; border-bottom: 1px solid #eee; background: <?= $n['status'] === 'pending' ? '#f8f9fa' : 'white' ?>;">
                                 <div style="font-size: 13px; font-weight: 500; margin-bottom: 2px;"><?= htmlspecialchars($subject) ?></div>
                                 <div style="font-size: 11px; color: #666;"><?= htmlspecialchars($message) ?></div>
-                                <div style="font-size: 10px; color: #999; margin-top: 2px;"><?= date('d M H:i', strtotime($n['created_at'])) ?></div>
+                                <div style="font-size: 10px; color: #999; margin-top: 2px;"><?= date('d M H:i', strtotime($n['send_at'])) ?></div>
                             </div>
                         <?php endforeach; ?>
                     <?php else: ?>
@@ -86,10 +86,10 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
             </div>
 
             <div id="user-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 200px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden;">
-                <a href="profile.php" style="display: block; padding: 12px 20px; color: var(--text-dark); text-decoration: none; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                <a href="index.php?page=user_profile" style="display: block; padding: 12px 20px; color: var(--text-dark); text-decoration: none; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
                     👤 Profile
                 </a>
-                <a href="logout.php" onclick="return confirm('Apakah Anda yakin ingin keluar?')" style="display: block; padding: 12px 20px; color: #dc3545; text-decoration: none; font-weight: 500;" onmouseover="this.style.background='#ffe6e6'" onmouseout="this.style.background='white'">
+                <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin keluar?')" style="display: block; padding: 12px 20px; color: #dc3545; text-decoration: none; font-weight: 500;" onmouseover="this.style.background='#ffe6e6'" onmouseout="this.style.background='white'">
                     🚪 Logout
                 </a>
             </div>

@@ -4,11 +4,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-$autoloadPath = require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
-}
-
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 
 class NotificationService
@@ -27,25 +23,16 @@ class NotificationService
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ? $row['email'] : null;
         } catch (PDOException $e) {
-            error_log("DB error getEmailByUserId: " . $e->getMessage());
+            error_log("DB error in getEmailByUserId for user_id $user_id: " . $e->getMessage());
             return null;
         }
     }
 
-    /** Log ke tabel notifications */
-    private static function log($user_id, $type, $payload, $status)
-    {
-        try {
-            $db = Database::connect();
-            $stmt = $db->prepare("
-                INSERT INTO notifications (user_id, type, payload, status, send_at)
-                VALUES (?, ?, ?, ?)
-            ");
-            $stmt->execute([$user_id, $type, json_encode(["message" => $payload]), $status]);
-        } catch (PDOException $e) {
-            error_log("DB error logging notification: " . $e->getMessage());
-        }
-    }
+    /** 
+     * Log ke tabel notifications - REMOVED
+     * Reason: Duplikasi dengan Notification::create() di controller
+     * Single responsibility: Controller handles all DB operations
+     */
 
     /* ============================================================
        PUBLIC FUNCTION — SEND EMAIL
@@ -53,10 +40,21 @@ class NotificationService
 
     public static function sendEmail($user_id, $toEmail, $subject, $message)
     {
+        // Validate required parameters
+        if (empty($subject) || empty($message)) {
+            error_log("Email missing subject or message for user_id: $user_id");
+            return false;
+        }
+
         // Check if PHPMailer class exists (meaning autoloader worked)
         if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-            self::log($user_id, 'email', $subject . " (Email skipped: PHPMailer not installed)", 'failed');
-            // error_log("PHPMailer not found. Run 'composer install' in project root.");
+            error_log("PHPMailer not found. Email cannot be sent for user_id: $user_id");
+            return false;
+        }
+
+        // Validate mail configuration
+        if (!defined('MAIL_HOST') || !defined('MAIL_USERNAME') || !defined('MAIL_PASSWORD')) {
+            error_log("Mail configuration missing. Check .env file.");
             return false;
         }
 
@@ -66,13 +64,17 @@ class NotificationService
         }
 
         if (empty($toEmail)) {
-            self::log($user_id, 'email', "Email kosong / tidak ditemukan", 'failed');
+            error_log("Email address not found for user_id: $user_id");
             return false;
         }
 
         $mail = new PHPMailer(true);
 
         try {
+            /* CHARSET */
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
+
             /* SMTP SERVER */
             $mail->isSMTP();
             $mail->Host       = MAIL_HOST;
@@ -103,17 +105,14 @@ class NotificationService
             /* SEND */
             $mail->send();
 
-            self::log($user_id, 'email', $subject, 'sent');
+            // Email sent successfully - controller will update notification status
             return true;
         } catch (Exception $e) {
 
             $error = "Mailer Error: " . $mail->ErrorInfo;
 
-            // log error ke tabel notifications
-            self::log($user_id, 'email', $subject . " | " . $error, 'failed');
-
-            // log juga ke server error log
-            error_log("MAIL ERROR: " . $error);
+            // Log error with context for debugging
+            error_log("MAIL ERROR [user_id: $user_id, subject: $subject]: " . $error);
 
             return false;
         }
