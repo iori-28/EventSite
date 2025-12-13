@@ -79,15 +79,63 @@ if ($action === 'approve') {
             "<b>Event kamu telah disetujui admin.</b>" // body email
         );
 
-        echo json_encode([
-            "status" => "EVENT_APPROVED",
-            "notif"  => $notif          // optional: buat debugging
-        ]);
+        header('Location: index.php?page=adm_apprv_event&msg=approved');
+        exit;
+    } else {
+        header('Location: index.php?page=adm_apprv_event&msg=failed');
+        exit;
+    }
+}
+
+/* =========================
+   REJECT EVENT (ADMIN)
+   ========================= */
+if ($action === 'reject') {
+    if ($_SESSION['user']['role'] !== 'admin') die("ONLY_ADMIN");
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/models/Event.php';
+
+    $event_id = $_POST['id'];
+    $event = Event::getById($event_id);
+
+    if (EventController::reject($event_id)) {
+        // Notification payload
+        $payload = [
+            'event_id' => $event['id'],
+            'user_id'  => $event['created_by'],
+            'email'    => $event['creator_email']
+        ];
+
+        NotificationController::createAndSend(
+            $event['created_by'],
+            'event_rejected',
+            $payload,
+            "Event Ditolak",
+            "<b>Mohon maaf, event kamu ditolak.</b>"
+        );
+
+        header('Location: index.php?page=adm_apprv_event&msg=rejected');
+        exit;
+    } else {
+        header('Location: index.php?page=adm_apprv_event&msg=failed');
+        exit;
+    }
+}
+
+/* =========================
+   DELETE EVENT (ADMIN)
+   ========================= */
+if ($action === 'delete') {
+    if ($_SESSION['user']['role'] !== 'admin') die("ONLY_ADMIN");
+
+    $event_id = $_POST['id'];
+    if (EventController::delete($event_id)) {
+        echo json_encode(["status" => "EVENT_DELETED"]);
     } else {
         echo "FAILED";
     }
 }
-
 
 /* =========================
    REGISTER EVENT (USER)

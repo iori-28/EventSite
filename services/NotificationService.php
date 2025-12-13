@@ -4,7 +4,11 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 
-require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
+$autoloadPath = require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+}
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 
 class NotificationService
@@ -49,6 +53,13 @@ class NotificationService
 
     public static function sendEmail($user_id, $toEmail, $subject, $message)
     {
+        // Check if PHPMailer class exists (meaning autoloader worked)
+        if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            self::log($user_id, 'email', $subject . " (Email skipped: PHPMailer not installed)", 'failed');
+            // error_log("PHPMailer not found. Run 'composer install' in project root.");
+            return false;
+        }
+
         // jika email kosong → ambil dari user_id
         if (empty($toEmail) && $user_id) {
             $toEmail = self::getEmailByUserId($user_id);
@@ -77,7 +88,7 @@ class NotificationService
             }
 
             $mail->Port       = MAIL_PORT;
-            $mail->SMTPDebug  = 2; // ubah ke 2 kalau mau debugging
+            $mail->SMTPDebug  = 0; // 0 = no debug, 1 = client, 2 = client+server
 
             /* FROM & TO */
             $mail->setFrom(MAIL_USERNAME, MAIL_FROM_NAME);

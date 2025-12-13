@@ -23,6 +23,16 @@ class EventController
         return Event::cancel($id);
     }
 
+    public static function reject($id)
+    {
+        return Event::reject($id);
+    }
+
+    public static function delete($id)
+    {
+        return Event::delete($id);
+    }
+
     public static function register($user_id, $event_id)
     {
         return Event::register($user_id, $event_id);

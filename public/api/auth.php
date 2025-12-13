@@ -24,6 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($_POST['action'] === 'logout') {
         AuthController::logout();
+        // Clear any previous output (warnings, whitespace)
+        ob_clean();
         echo "LOGOUT_SUCCESS";
+        exit;
     }
 }

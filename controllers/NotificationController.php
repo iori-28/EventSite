@@ -31,4 +31,25 @@ class NotificationController
 
         return ['db_id' => $id, 'delivered' => $delivered];
     }
+
+    public static function getUnreadCount($user_id)
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+        $stmt->execute([$user_id]);
+        return $stmt->fetchColumn();
+    }
+
+    public static function getLatest($user_id, $limit = 5)
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare("
+            SELECT * FROM notifications 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT $limit
+        ");
+        $stmt->execute([$user_id]);
+        return $stmt->fetchAll();
+    }
 }

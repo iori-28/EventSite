@@ -19,16 +19,17 @@ if ($action === 'register') {
     $result = ParticipantController::register($user_id, $event_id);
 
     if ($result === "NOT_APPROVED") {
-        echo "EVENT_NOT_APPROVED";
+        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=not_approved');
     } elseif ($result === "FULL") {
-        echo "EVENT_FULL";
+        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=event_full');
     } elseif ($result === "ALREADY_REGISTERED") {
-        echo "ALREADY_REGISTERED";
+        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=already_registered');
     } elseif ($result === true) {
-        echo "REGISTER_SUCCESS";
+        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=success');
     } else {
-        echo "REGISTER_FAILED";
+        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=failed');
     }
+    exit;
 }
 
 /* =========================
