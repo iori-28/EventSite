@@ -15,6 +15,11 @@ define('MAIL_USERNAME', $env['MAIL_USERNAME']);
 define('MAIL_PASSWORD', $env['MAIL_PASSWORD']);
 define('MAIL_FROM_NAME', $env['MAIL_FROM_NAME']);
 
+/*EVENT REMAINDER*/
+define('EVENT_REMINDER_ENABLED', $env['EVENT_REMINDER_ENABLED']);
+define('EVENT_REMINDER_HOURS', $env['EVENT_REMINDER_HOURS']);
+
+
 /* APP */
 define('APP_BASE_URL', $env['APP_BASE_URL']);
 

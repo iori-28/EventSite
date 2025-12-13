@@ -74,6 +74,43 @@ class Event
         return $stmt->execute([$id]);
     }
 
+    public static function reject($id)
+    {
+        $db = Database::connect();
+
+        // ambil data event + pembuat event
+        $stmt = $db->prepare("
+            SELECT events.title, users.id AS user_id, users.email
+            FROM events
+            JOIN users ON users.id = events.created_by
+            WHERE events.id = ?
+        ");
+        $stmt->execute([$id]);
+        $event = $stmt->fetch();
+
+        if (!$event) return false;
+
+        $update = $db->prepare("UPDATE events SET status = 'rejected' WHERE id = ?");
+        $update->execute([$id]);
+
+        // 🔔 kirim email ke panitia
+        NotificationService::sendEmail(
+            $event['user_id'],
+            $event['email'],
+            "Event Ditolak",
+            "<b>Maaf, event kamu (<i>{$event['title']}</i>) ditolak oleh admin.</b>"
+        );
+
+        return true;
+    }
+
+    public static function delete($id)
+    {
+        $db = Database::connect();
+        $stmt = $db->prepare("DELETE FROM events WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
     public static function register($user_id, $event_id)
     {
         $db = Database::connect();
