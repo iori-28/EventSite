@@ -38,7 +38,7 @@ if ($page === 'logout') {
     <html>
 
     <head>
-        <meta http-equiv="refresh" content="0;url=index.php?page=login&msg=logout_success">
+        <meta http-equiv="refresh" content="0;url=index.php?page=home">
         <script>
             localStorage.clear();
             sessionStorage.clear();
@@ -75,6 +75,7 @@ $allowed_pages = [
     'admin_dashboard',
     'admin_analytics',
     'admin_manage_events',
+    'admin_event_completion',
     'admin_manage_users',
     'admin_reports',
     'admin_notifications',

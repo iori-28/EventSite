@@ -3,7 +3,14 @@
 
 // Redirect jika sudah login
 if (isset($_SESSION['user'])) {
-    header('Location: index.php?page=home');
+    $role = $_SESSION['user']['role'];
+    if ($role === 'admin') {
+        header('Location: index.php?page=admin_dashboard');
+    } elseif ($role === 'panitia') {
+        header('Location: index.php?page=panitia_dashboard');
+    } else {
+        header('Location: index.php?page=user_dashboard');
+    }
     exit;
 }
 
@@ -13,13 +20,20 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
     require_once '../controllers/AuthController.php';
-    
+
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
-    
+
     if (AuthController::login($email, $password)) {
-        // Redirect ke home setelah login berhasil
-        header('Location: index.php?page=home');
+        // Redirect ke dashboard sesuai role setelah login berhasil
+        $role = $_SESSION['user']['role'];
+        if ($role === 'admin') {
+            header('Location: index.php?page=admin_dashboard');
+        } elseif ($role === 'panitia') {
+            header('Location: index.php?page=panitia_dashboard');
+        } else {
+            header('Location: index.php?page=user_dashboard');
+        }
         exit;
     } else {
         $error = 'Email atau password salah!';
@@ -28,12 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - EventSite</title>
     <link rel="stylesheet" href="css/auth.css">
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-header">
@@ -56,29 +72,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <form method="POST" action="">
             <input type="hidden" name="action" value="login">
-            
+
             <div class="form-group">
                 <label for="email">Email</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="nama@example.com" 
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="nama@example.com"
                     required
-                    value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>"
-                >
+                    value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
             </div>
 
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="password-toggle">
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Masukkan password Anda" 
-                        required
-                    >
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Masukkan password Anda"
+                        required>
                     <button type="button" class="password-toggle-btn" onclick="togglePassword()">
                         👁️
                     </button>
@@ -101,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const toggleBtn = document.querySelector('.password-toggle-btn');
-            
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 toggleBtn.textContent = '🙈';
@@ -121,4 +135,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         });
     </script>
 </body>
+
 </html>

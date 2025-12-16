@@ -235,74 +235,29 @@ if ($action === 'complete') {
         die("ALREADY_COMPLETED");
     }
 
-    // Check if event has ended
-    if (strtotime($event['end_at']) > time()) {
-        die("EVENT_NOT_ENDED_YET");
+
+    // Check if there are any checked-in participants
+    $checkStmt = $db->prepare("SELECT COUNT(*) FROM participants WHERE event_id = ? AND status = 'checked_in'");
+    $checkStmt->execute([$event_id]);
+    $attendedCount = $checkStmt->fetchColumn();
+
+    if ($attendedCount == 0) {
+        die("NO_ATTENDED_PARTICIPANTS");
     }
 
-    // Update event status to completed
-    $updateStmt = $db->prepare("UPDATE events SET status = 'completed' WHERE id = ?");
-    $updateStmt->execute([$event_id]);
-
-    // Get all participants with checked_in status
-    $participantsStmt = $db->prepare("
-        SELECT p.id as participant_id, p.user_id, u.name, u.email
-        FROM participants p
-        JOIN users u ON p.user_id = u.id
-        WHERE p.event_id = ? AND p.status = 'checked_in'
+    // Update event status to waiting_completion (waiting for admin approval)
+    $updateStmt = $db->prepare("
+        UPDATE events 
+        SET status = 'waiting_completion', 
+            completed_by = ?, 
+            completed_at = NOW() 
+        WHERE id = ?
     ");
-    $participantsStmt->execute([$event_id]);
-    $participants = $participantsStmt->fetchAll(PDO::FETCH_ASSOC);
+    $updateStmt->execute([$_SESSION['user']['id'], $event_id]);
 
-    $successCount = 0;
-    $errorCount = 0;
+    // DO NOT generate certificates yet - wait for admin approval
+    // Certificates will be generated when admin approves completion
 
-    // Generate certificates and send notifications for each participant
-    foreach ($participants as $participant) {
-        // Generate certificate
-        $certResult = CertificateController::generate($participant['participant_id']);
-
-        if ($certResult['success']) {
-            // Send notification with certificate
-            $payload = [
-                'participant_id' => $participant['participant_id'],
-                'certificate_id' => $certResult['certificate_id'],
-                'event_id' => $event_id,
-                'event_title' => $event['title'],
-                'email' => $participant['email']
-            ];
-
-            $subject = "🎉 Sertifikat Event \"{$event['title']}\" Telah Diterbitkan";
-            $body = "<h3>Selamat, {$participant['name']}!</h3>
-                     <p>Event <strong>{$event['title']}</strong> telah selesai dan Anda telah terdaftar sebagai peserta yang hadir.</p>
-                     <p>Sertifikat kehadiran Anda telah diterbitkan dan dapat diunduh melalui dashboard.</p>
-                     <p><a href='http://localhost/EventSite/public/index.php?page=user_certificates' style='display:inline-block; padding:10px 20px; background:#667eea; color:white; text-decoration:none; border-radius:5px;'>Lihat Sertifikat</a></p>
-                     <p>Terima kasih atas partisipasi Anda!</p>";
-
-            $notifResult = NotificationController::createAndSend(
-                $participant['user_id'],
-                'certificate_issued',
-                $payload,
-                $subject,
-                $body
-            );
-
-            if ($notifResult['delivered']) {
-                $successCount++;
-            } else {
-                $errorCount++;
-            }
-        } else {
-            $errorCount++;
-            error_log("Failed to generate certificate for participant_id: {$participant['participant_id']}");
-        }
-    }
-
-    // Return result
-    if ($errorCount === 0) {
-        echo "SUCCESS";
-    } else {
-        echo "PARTIAL_SUCCESS: $successCount certificates sent, $errorCount failed";
-    }
+    echo "SUCCESS_WAITING_ADMIN_APPROVAL";
     exit;
 }

@@ -1,7 +1,43 @@
+# Dependencies
 /vendor/
-/.env
 /node_modules/
 
+# Environment
+/.env
+.env.local
+.env.*.local
+
+# Database
+/database/migrations/dump_db.sql
+*.sql.gz
+*.sql.zip
+/database/backups/
+
+# Scripts (Development Only)
+/scripts/pashash.php
+
+# Logs
 *.log
-/.vscode
-/.idea
+/logs/
+cron_*.log
+
+# Generated Files
+/public/certificates/*.html
+/public/certificates/*.pdf
+
+# IDE
+/.vscode/
+/.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary Files
+*.tmp
+*.temp
+*.cache

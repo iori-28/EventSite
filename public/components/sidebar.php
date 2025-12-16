@@ -89,10 +89,10 @@ if ($role === 'user') {
             'link' => 'index.php?page=admin_manage_events',
             'active' => 'admin_manage_events'
         ],
-        'Konfirmasi Kehadiran' => [
+        'Event Completion' => [
             'icon' => '✅',
-            'link' => 'index.php?page=admin_confirm_attendance',
-            'active' => 'admin_confirm_attendance'
+            'link' => 'index.php?page=admin_event_completion',
+            'active' => 'admin_event_completion'
         ],
         'Kelola Users' => [
             'icon' => '👥',
@@ -111,17 +111,11 @@ if ($role === 'user') {
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">E</div>
-        <a href="index.php?page=home" class="sidebar-brand">EventSite</a>
+        <a href="index.php?page=<?= $role ?>_dashboard" class="sidebar-brand">EventSite</a>
     </div>
 
     <div class="sidebar-menu">
         <div class="menu-label">Menu Utama</div>
-
-        <!-- LOGOUT SEBAGAI MENU ITEM PERTAMA -->
-        <a href="logout.php" class="menu-item" style="background: #ffe6e6; color: #dc3545; border-left: 3px solid #dc3545;">
-            <i>🚪</i>
-            <span>LOGOUT</span>
-        </a>
 
         <?php foreach ($menu_items as $label => $item): ?>
             <a href="<?= $item['link'] ?>" class="menu-item <?= $current_page === $item['active'] ? 'active' : '' ?>">
@@ -129,6 +123,12 @@ if ($role === 'user') {
                 <span><?= $label ?></span>
             </a>
         <?php endforeach; ?>
+
+        <div class="menu-label" style="margin-top: 15px;">Lainnya</div>
+        <a href="index.php?page=home" class="menu-item">
+            <i>🏠</i>
+            <span>Halaman Utama</span>
+        </a>
     </div>
 
     <div class="sidebar-footer">

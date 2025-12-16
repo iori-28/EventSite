@@ -86,7 +86,7 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
             </div>
 
             <div id="user-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 200px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden;">
-                <a href="index.php?page=user_profile" style="display: block; padding: 12px 20px; color: var(--text-dark); text-decoration: none; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
+                <a href="index.php?page=<?= $_SESSION['user']['role'] ?>_profile" style="display: block; padding: 12px 20px; color: var(--text-dark); text-decoration: none; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
                     👤 Profile
                 </a>
                 <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin keluar?')" style="display: block; padding: 12px 20px; color: #dc3545; text-decoration: none; font-weight: 500;" onmouseover="this.style.background='#ffe6e6'" onmouseout="this.style.background='white'">

@@ -29,11 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_msg = 'Mohon lengkapi semua field yang wajib diisi.';
     } else {
         if (EventController::create($data)) {
-            $success_msg = 'Event berhasil dibuat dan menunggu persetujuan Admin.';
+            // PRG Pattern: Redirect after successful POST to prevent duplicate submission
+            $_SESSION['flash_success'] = 'Event berhasil dibuat dan menunggu persetujuan Admin.';
+            header('Location: index.php?page=panitia_my_events');
+            exit;
         } else {
             $error_msg = 'Gagal membuat event. Silakan coba lagi.';
         }
     }
+}
+
+// Display flash message if exists (from redirect)
+if (isset($_SESSION['flash_success'])) {
+    $success_msg = $_SESSION['flash_success'];
+    unset($_SESSION['flash_success']);
+}
+if (isset($_SESSION['flash_error'])) {
+    $error_msg = $_SESSION['flash_error'];
+    unset($_SESSION['flash_error']);
 }
 ?>
 <!DOCTYPE html>

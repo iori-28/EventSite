@@ -40,31 +40,36 @@ class NotificationService
 
     public static function sendEmail($user_id, $toEmail, $subject, $message)
     {
+        error_log("[NOTIF-SVC] sendEmail called - user_id: $user_id, toEmail: $toEmail, subject: $subject");
+
         // Validate required parameters
         if (empty($subject) || empty($message)) {
-            error_log("Email missing subject or message for user_id: $user_id");
+            error_log("[NOTIF-SVC] Email missing subject or message for user_id: $user_id");
             return false;
         }
 
         // Check if PHPMailer class exists (meaning autoloader worked)
         if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-            error_log("PHPMailer not found. Email cannot be sent for user_id: $user_id");
+            error_log("[NOTIF-SVC] PHPMailer not found. Email cannot be sent for user_id: $user_id");
             return false;
         }
 
         // Validate mail configuration
         if (!defined('MAIL_HOST') || !defined('MAIL_USERNAME') || !defined('MAIL_PASSWORD')) {
-            error_log("Mail configuration missing. Check .env file.");
+            error_log("[NOTIF-SVC] Mail configuration missing. Check .env file.");
             return false;
         }
+
+        error_log("[NOTIF-SVC] Mail config OK - Host: " . MAIL_HOST . ", Port: " . MAIL_PORT);
 
         // jika email kosong → ambil dari user_id
         if (empty($toEmail) && $user_id) {
             $toEmail = self::getEmailByUserId($user_id);
+            error_log("[NOTIF-SVC] Fetched email from DB: $toEmail");
         }
 
         if (empty($toEmail)) {
-            error_log("Email address not found for user_id: $user_id");
+            error_log("[NOTIF-SVC] Email address not found for user_id: $user_id");
             return false;
         }
 
@@ -106,13 +111,15 @@ class NotificationService
             $mail->send();
 
             // Email sent successfully - controller will update notification status
+            error_log("[NOTIF-SVC] ✓ Email sent successfully to: $toEmail");
             return true;
         } catch (Exception $e) {
 
             $error = "Mailer Error: " . $mail->ErrorInfo;
 
             // Log error with context for debugging
-            error_log("MAIL ERROR [user_id: $user_id, subject: $subject]: " . $error);
+            error_log("[NOTIF-SVC] ✗ MAIL ERROR [user_id: $user_id, to: $toEmail, subject: $subject]: " . $error);
+            error_log("[NOTIF-SVC] Exception: " . $e->getMessage());
 
             return false;
         }
