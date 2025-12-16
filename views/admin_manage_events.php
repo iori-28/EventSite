@@ -60,6 +60,7 @@ $events = $stmt->fetchAll();
 
             <div class="card mb-4" style="padding: 20px;">
                 <form method="GET" class="d-flex align-center gap-2" style="flex-wrap: wrap;">
+                    <input type="hidden" name="page" value="admin_manage_events">
                     <select name="status" class="form-control" style="width: auto; min-width: 150px;">
                         <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>Semua Status</option>
                         <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Menunggu Review</option>
@@ -78,9 +79,27 @@ $events = $stmt->fetchAll();
             <div class="card">
                 <div class="card-body" style="padding: 0;">
                     <?php if (count($events) > 0): ?>
+                        <!-- Bulk Actions Toolbar -->
+                        <form method="POST" action="api/events_bulk.php" id="bulk-form" style="padding: 15px; border-bottom: 1px solid var(--border-color); background: #f8f9fa;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="font-weight: 500;">With Selected:</label>
+                                <select name="bulk_action" required style="padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                                    <option value="">-- Choose Action --</option>
+                                    <option value="approve">✓ Approve</option>
+                                    <option value="reject">✗ Reject</option>
+                                    <option value="delete">🗑 Delete</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm" onclick="return confirmBulkAction()">Apply</button>
+                                <span id="selected-count" style="margin-left: 10px; color: #666; font-size: 13px;">0 selected</span>
+                            </div>
+                        </form>
+
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f8f9fa; text-align: left;">
+                                    <th style="padding: 15px; border-bottom: 1px solid var(--border-color); width: 30px;">
+                                        <input type="checkbox" id="select-all" onclick="toggleSelectAll(this)">
+                                    </th>
                                     <th style="padding: 15px; border-bottom: 1px solid var(--border-color);">Event</th>
                                     <th style="padding: 15px; border-bottom: 1px solid var(--border-color);">Panitia</th>
                                     <th style="padding: 15px; border-bottom: 1px solid var(--border-color);">Tanggal</th>
@@ -91,6 +110,9 @@ $events = $stmt->fetchAll();
                             <tbody>
                                 <?php foreach ($events as $event): ?>
                                     <tr>
+                                        <td style="padding: 15px; border-bottom: 1px solid #eee; text-align: center;">
+                                            <input type="checkbox" name="event_ids[]" value="<?= $event['id'] ?>" class="event-checkbox" form="bulk-form" onchange="updateSelectedCount()">
+                                        </td>
                                         <td style="padding: 15px; border-bottom: 1px solid #eee;">
                                             <strong><?= htmlspecialchars($event['title']) ?></strong>
                                             <div class="text-muted" style="font-size: 12px;"><?= htmlspecialchars($event['location']) ?></div>
@@ -152,6 +174,48 @@ $events = $stmt->fetchAll();
     </div>
 
     <script>
+        // Bulk Actions Functions
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.event-checkbox');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checked = document.querySelectorAll('.event-checkbox:checked').length;
+            document.getElementById('selected-count').textContent = checked + ' selected';
+
+            // Update select-all checkbox state
+            const total = document.querySelectorAll('.event-checkbox').length;
+            const selectAll = document.getElementById('select-all');
+            if (selectAll) {
+                selectAll.checked = (checked === total && total > 0);
+                selectAll.indeterminate = (checked > 0 && checked < total);
+            }
+        }
+
+        function confirmBulkAction() {
+            const checked = document.querySelectorAll('.event-checkbox:checked');
+            if (checked.length === 0) {
+                alert('Please select at least one event');
+                return false;
+            }
+
+            const action = document.querySelector('select[name="bulk_action"]').value;
+            if (!action) {
+                alert('Please choose an action');
+                return false;
+            }
+
+            const actionText = {
+                'approve': 'approve',
+                'reject': 'reject',
+                'delete': 'DELETE'
+            };
+
+            return confirm(`Are you sure you want to ${actionText[action]} ${checked.length} event(s)?`);
+        }
+
         function updateEvent(id, action) {
             if (!confirm('Apakah Anda yakin ingin melakukan tindakan ini?')) return;
 

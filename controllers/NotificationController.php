@@ -12,16 +12,20 @@ class NotificationController
     {
         // Validate inputs
         if (!is_numeric($user_id) || $user_id <= 0) {
-            error_log("Invalid user_id in createAndSend: $user_id");
+            error_log("[NOTIF-CTRL] Invalid user_id in createAndSend: $user_id");
             return ['db_id' => null, 'delivered' => false, 'error' => 'invalid_user_id'];
         }
+
+        error_log("[NOTIF-CTRL] Creating notification for user_id: $user_id, type: $type");
 
         // 1) Create notification record as pending
         $id = Notification::create($user_id, $type, $payload, 'pending');
         if (!$id) {
-            error_log("Failed to create notification for user_id: $user_id, type: $type");
+            error_log("[NOTIF-CTRL] Failed to create notification for user_id: $user_id, type: $type");
             return ['db_id' => null, 'delivered' => false, 'error' => 'db_insert_failed'];
         }
+
+        error_log("[NOTIF-CTRL] Notification created with ID: $id");
 
         // 2) Extract email from payload if available
         $userEmail = null;
@@ -29,14 +33,20 @@ class NotificationController
             $userEmail = $payload['email'];
         }
 
+        error_log("[NOTIF-CTRL] Target email: " . ($userEmail ?? 'none - will fetch from DB'));
+
         // 3) Attempt to send email via NotificationService
         $delivered = NotificationService::sendEmail($user_id, $userEmail ?? '', $subject, $htmlBody);
+
+        error_log("[NOTIF-CTRL] Email delivery result: " . ($delivered ? 'SUCCESS' : 'FAILED'));
 
         // 4) Update notification status based on delivery result
         $statusUpdated = Notification::updateStatus($id, $delivered ? 'sent' : 'failed');
 
         if (!$statusUpdated) {
-            error_log("Failed to update notification status for id: $id");
+            error_log("[NOTIF-CTRL] Failed to update notification status for id: $id");
+        } else {
+            error_log("[NOTIF-CTRL] Notification status updated to: " . ($delivered ? 'sent' : 'failed'));
         }
 
         return [

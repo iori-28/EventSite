@@ -100,6 +100,7 @@ $users = $stmt->fetchAll();
 
             <div class="card mb-4" style="padding: 20px;">
                 <form method="GET" class="d-flex align-center gap-2" style="flex-wrap: wrap;">
+                    <input type="hidden" name="page" value="admin_manage_users">
                     <select name="role" class="form-control" style="width: auto; min-width: 150px;">
                         <option value="all" <?= $role === 'all' ? 'selected' : '' ?>>Semua Role</option>
                         <option value="user" <?= $role === 'user' ? 'selected' : '' ?>>User</option>

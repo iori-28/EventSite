@@ -11,6 +11,12 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
 $user_id = $_SESSION['user']['id'];
 
+// Get flash messages
+$success_msg = $_SESSION['flash_success'] ?? '';
+$error_msg = $_SESSION['flash_error'] ?? '';
+if ($success_msg) unset($_SESSION['flash_success']);
+if ($error_msg) unset($_SESSION['flash_error']);
+
 // Get events created by panitia
 $query = "SELECT * FROM events WHERE created_by = :user_id ORDER BY created_at DESC";
 $stmt = $db->prepare($query);
@@ -46,6 +52,18 @@ $events = $stmt->fetchAll();
                 </div>
             </header>
 
+            <?php if ($success_msg): ?>
+                <div class="alert alert-success mb-4" style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    ✅ <?= htmlspecialchars($success_msg) ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($error_msg): ?>
+                <div class="alert alert-error mb-4" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    ❌ <?= htmlspecialchars($error_msg) ?>
+                </div>
+            <?php endif; ?>
+
             <?php if (count($events) > 0): ?>
                 <div class="card">
                     <table style="width: 100%; border-collapse: collapse;">
@@ -75,8 +93,8 @@ $events = $stmt->fetchAll();
                                         <?= $event['capacity'] ?>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                                        <span class="badge badge-<?= $event['status'] === 'completed' ? 'info' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning')) ?>">
-                                            <?= $event['status'] === 'completed' ? 'Selesai' : ucfirst($event['status']) ?>
+                                        <span class="badge badge-<?= $event['status'] === 'completed' ? 'success' : ($event['status'] === 'waiting_completion' ? 'info' : ($event['status'] === 'approved' ? 'primary' : ($event['status'] === 'rejected' ? 'danger' : 'warning'))) ?>">
+                                            <?= $event['status'] === 'completed' ? '✓ Selesai' : ($event['status'] === 'waiting_completion' ? '⏳ Menunggu Approval' : ucfirst($event['status'])) ?>
                                         </span>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
@@ -89,8 +107,10 @@ $events = $stmt->fetchAll();
 
                                             <a href="index.php?page=panitia_participants&event_id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">Peserta</a>
 
-                                            <?php if ($event['status'] === 'approved' && strtotime($event['end_at']) < time()): ?>
+                                            <?php if ($event['status'] === 'approved'): ?>
                                                 <button onclick="completeEvent(<?= $event['id'] ?>)" class="btn btn-info btn-sm">✅ Selesaikan</button>
+                                            <?php elseif ($event['status'] === 'waiting_completion'): ?>
+                                                <span class="badge badge-info" style="font-size: 11px;">⏳ Waiting Admin</span>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -110,7 +130,7 @@ $events = $stmt->fetchAll();
 
     <script>
         function completeEvent(eventId) {
-            if (!confirm('Apakah Anda yakin event ini sudah selesai?\n\nSetelah diselesaikan:\n- Sertifikat akan otomatis digenerate untuk peserta yang hadir\n- Notifikasi akan dikirim ke semua peserta yang hadir\n- Status event tidak dapat diubah lagi')) {
+            if (!confirm('Apakah Anda yakin event ini sudah selesai?\n\nSetelah diklik:\n- Event akan dikirim ke admin untuk approval\n- Pastikan sudah konfirmasi kehadiran peserta\n- Sertifikat akan digenerate setelah admin approve')) {
                 return;
             }
 
@@ -123,9 +143,11 @@ $events = $stmt->fetchAll();
                 })
                 .then(response => response.text())
                 .then(data => {
-                    if (data === 'SUCCESS') {
-                        alert('Event berhasil diselesaikan! Sertifikat sedang digenerate dan notifikasi dikirim ke peserta.');
+                    if (data === 'SUCCESS_WAITING_ADMIN_APPROVAL') {
+                        alert('✓ Event completion request sent!\n\nMenunggu approval dari admin.\nSetelah diapprove, sertifikat akan otomatis digenerate.');
                         location.reload();
+                    } else if (data === 'NO_ATTENDED_PARTICIPANTS') {
+                        alert('❌ Tidak ada peserta yang hadir!\n\nPastikan Anda sudah konfirmasi kehadiran peserta terlebih dahulu.');
                     } else {
                         alert('Gagal menyelesaikan event: ' + data);
                     }
