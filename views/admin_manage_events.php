@@ -124,13 +124,13 @@ $events = $stmt->fetchAll();
                                             <?= date('d M Y', strtotime($event['start_at'])) ?>
                                         </td>
                                         <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                                            <span class="badge badge-<?= $event['status'] === 'completed' ? 'info' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning')) ?>">
-                                                <?= $event['status'] === 'completed' ? 'Selesai' : ucfirst($event['status']) ?>
+                                            <span class="badge badge-<?= $event['status'] === 'completed' ? 'success' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'waiting_completion' ? 'info' : ($event['status'] === 'rejected' ? 'danger' : 'warning'))) ?>">
+                                                <?= $event['status'] === 'completed' ? '✓ Selesai' : ($event['status'] === 'waiting_completion' ? '⏳ Menunggu' : ucfirst($event['status'])) ?>
                                             </span>
                                         </td>
                                         <td style="padding: 15px; border-bottom: 1px solid #eee;">
                                             <div class="d-flex gap-2">
-                                                <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">Review</a>
+                                                <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=admin_manage_events" class="btn btn-outline btn-sm">Review</a>
                                                 <a href="index.php?page=admin_edit_event&id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">✏️ Edit</a>
 
                                                 <?php if ($event['status'] === 'pending'): ?>
@@ -145,6 +145,7 @@ $events = $stmt->fetchAll();
                                                         <button type="submit" class="btn btn-danger btn-sm" style="background: #dc3545; border-color: #dc3545; color: white;">✗</button>
                                                     </form>
                                                 <?php elseif ($event['status'] === 'approved'): ?>
+                                                    <button onclick="completeEvent(<?= $event['id'] ?>)" class="btn btn-success btn-sm" style="background: #28a745;">✅ Complete Event</button>
                                                     <form method="POST" action="api/event_approval.php" style="display: inline;">
                                                         <input type="hidden" name="action" value="reject">
                                                         <input type="hidden" name="id" value="<?= $event['id'] ?>">
@@ -239,6 +240,62 @@ $events = $stmt->fetchAll();
                 .catch(err => {
                     console.error(err);
                     alert('Terjadi kesalahan sistem.');
+                });
+        }
+
+        function completeEvent(eventId) {
+            if (!confirm('⚠️ Apakah Anda yakin ingin menyelesaikan event ini?\n\nEvent akan langsung diset sebagai completed dan sertifikat akan digenerate (jika ada peserta yang hadir).')) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'admin_complete');
+            formData.append('event_id', eventId);
+            formData.append('force', 0);
+
+            fetch('api/admin_event_completion.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                        location.reload();
+                    } else if (data.require_confirm) {
+                        // Event has no participants, ask for confirmation
+                        if (confirm('⚠️ ' + data.message)) {
+                            // User confirmed, send force=1
+                            const forceData = new FormData();
+                            forceData.append('action', 'admin_complete');
+                            forceData.append('event_id', eventId);
+                            forceData.append('force', 1);
+
+                            fetch('api/admin_event_completion.php', {
+                                    method: 'POST',
+                                    body: forceData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        alert('✅ ' + data.message);
+                                        location.reload();
+                                    } else {
+                                        alert('❌ Error: ' + data.message);
+                                    }
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    alert('❌ Terjadi kesalahan sistem.');
+                                });
+                        }
+                    } else {
+                        alert('❌ Error: ' + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('❌ Terjadi kesalahan sistem.');
                 });
         }
     </script>

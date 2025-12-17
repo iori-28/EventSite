@@ -6,9 +6,17 @@ $db = Database::connect();
 
 // Get event ID
 $event_id = $_GET['id'] ?? null;
+$from_source = $_GET['from'] ?? '';
 
 if (!$event_id) {
     header('Location: index.php?page=events');
+    exit;
+}
+
+// If user came from email reminder and not logged in, redirect to login
+if ($from_source === 'email' && !isset($_SESSION['user'])) {
+    $return_url = urlencode("index.php?page=event-detail&id={$event_id}&from=email");
+    header("Location: index.php?page=login&redirect={$return_url}");
     exit;
 }
 
@@ -40,8 +48,59 @@ if (isset($_SESSION['user'])) {
 }
 
 $is_full = $event['participant_count'] >= $event['capacity'];
-$is_past = strtotime($event['start_at']) < time();
+$is_past = strtotime($event['end_at']) < time();
+$is_completed = in_array($event['status'], ['completed', 'waiting_completion']);
 $can_register = !$is_full && !$is_past && !$is_registered && isset($_SESSION['user']) && $_SESSION['user']['role'] === 'user';
+
+// Determine back button based on 'from' parameter or default to public events list
+$from = $_GET['from'] ?? 'events';
+$back_url = 'index.php?page=events';
+$back_text = '← Kembali ke Daftar Event';
+
+// Map 'from' parameter to appropriate back URL and text
+if ($from === 'admin_manage_events') {
+    $back_url = 'index.php?page=admin_manage_events';
+    $back_text = '← Kembali ke Kelola Event';
+} elseif ($from === 'panitia_my_events') {
+    $back_url = 'index.php?page=panitia_my_events';
+    $back_text = '← Kembali ke Event Saya';
+} elseif ($from === 'user_my_events') {
+    $back_url = 'index.php?page=user_my_events';
+    $back_text = '← Kembali ke Event Saya';
+} elseif ($from === 'user_dashboard') {
+    $back_url = 'index.php?page=user_dashboard';
+    $back_text = '← Kembali ke Dashboard';
+} elseif ($from === 'email') {
+    // From email, redirect to user's my events page if logged in
+    if (isset($_SESSION['user'])) {
+        $role = $_SESSION['user']['role'];
+        if ($role === 'user') {
+            $back_url = 'index.php?page=user_my_events';
+            $back_text = '← Kembali ke Event Saya';
+        } elseif ($role === 'panitia') {
+            $back_url = 'index.php?page=panitia_my_events';
+            $back_text = '← Kembali ke Event Saya';
+        } else {
+            $back_url = 'index.php?page=admin_dashboard';
+            $back_text = '← Kembali ke Dashboard';
+        }
+    }
+} elseif ($from === 'dashboard') {
+    // Redirect to appropriate dashboard based on role
+    if (isset($_SESSION['user'])) {
+        $role = $_SESSION['user']['role'];
+        if ($role === 'admin') {
+            $back_url = 'index.php?page=admin_dashboard';
+            $back_text = '← Kembali ke Dashboard';
+        } elseif ($role === 'panitia') {
+            $back_url = 'index.php?page=panitia_dashboard';
+            $back_text = '← Kembali ke Dashboard';
+        } else {
+            $back_url = 'index.php?page=user_dashboard';
+            $back_text = '← Kembali ke Dashboard';
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -105,7 +164,7 @@ $can_register = !$is_full && !$is_past && !$is_registered && isset($_SESSION['us
             font-size: 24px;
             width: 40px;
             height: 40px;
-            background: rgba(102, 126, 234, 0.1);
+            background: rgba(201, 56, 74, 0.1);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -137,7 +196,7 @@ $can_register = !$is_full && !$is_past && !$is_registered && isset($_SESSION['us
 
         .progress-fill {
             height: 100%;
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%);
             transition: width 0.3s ease;
         }
 
@@ -160,8 +219,8 @@ $can_register = !$is_full && !$is_past && !$is_registered && isset($_SESSION['us
     <div class="event-header">
         <div class="container">
             <div style="margin-bottom: 15px;">
-                <a href="index.php?page=events" style="color: white; text-decoration: none; opacity: 0.9;">
-                    ← Kembali ke Daftar Event
+                <a href="<?= $back_url ?>" style="color: white; text-decoration: none; opacity: 0.9; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s;">
+                    <?= $back_text ?>
                 </a>
             </div>
             <h1 style="font-size: 42px; margin-bottom: 15px;"><?= htmlspecialchars($event['title']) ?></h1>
@@ -202,9 +261,13 @@ $can_register = !$is_full && !$is_past && !$is_registered && isset($_SESSION['us
                         </div>
                     </div>
 
-                    <?php if ($is_past): ?>
-                        <div class="alert alert-error" style="margin-top: 30px; padding: 20px; background: #f8d7da; color: #721c24; border-radius: 8px;">
-                            ⚠️ Event ini sudah selesai
+                    <?php if ($is_completed): ?>
+                        <div class="alert alert-success" style="margin-top: 30px; padding: 20px; background: #d4edda; color: #155724; border-radius: 8px;">
+                            ✅ Event ini telah selesai
+                        </div>
+                    <?php elseif ($is_past): ?>
+                        <div class="alert alert-warning" style="margin-top: 30px; padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px;">
+                            ⏰ Waktu event sudah berakhir (menunggu konfirmasi penyelesaian)
                         </div>
                     <?php endif; ?>
                 </div>

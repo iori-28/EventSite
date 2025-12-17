@@ -1,6 +1,6 @@
 <?php
 
-$env = parse_ini_file($_SERVER['DOCUMENT_ROOT'] . '/EventSite/.env');
+$env = parse_ini_file(__DIR__ . '/../.env');
 
 /* DATABASE */
 define('DB_HOST', $env['DB_HOST']);

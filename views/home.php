@@ -13,16 +13,16 @@ $featuredEvents = $db->query("
     FROM events e 
     LEFT JOIN users u ON e.created_by = u.id 
     WHERE e.status = 'approved' 
-    AND e.start_at > NOW()
+    AND e.end_at > NOW()
     ORDER BY e.created_at DESC 
     LIMIT 3
 ")->fetchAll();
 
 // Get statistics
 $stats = [
-    'total_events' => $db->query("SELECT COUNT(*) FROM events WHERE status = 'approved'")->fetchColumn(),
+    'total_events' => $db->query("SELECT COUNT(*) FROM events WHERE status IN ('approved', 'completed', 'waiting_completion')")->fetchColumn(),
     'total_participants' => $db->query("SELECT COUNT(*) FROM participants")->fetchColumn(),
-    'active_events' => $db->query("SELECT COUNT(*) FROM events WHERE status = 'approved' AND start_at > NOW()")->fetchColumn(),
+    'active_events' => $db->query("SELECT COUNT(*) FROM events WHERE status = 'approved' AND end_at > NOW()")->fetchColumn(),
 ];
 ?>
 <!DOCTYPE html>
@@ -88,7 +88,7 @@ $stats = [
                 <div class="grid grid-3">
                     <?php foreach ($featuredEvents as $event): ?>
                         <div class="card">
-                            <div class="card-img" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">
+                            <div class="card-img" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">
                                 📅
                             </div>
                             <div class="card-body">
@@ -106,7 +106,7 @@ $stats = [
 
                                 <div class="d-flex justify-between align-center">
                                     <span class="badge badge-success">Available</span>
-                                    <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">Lihat Detail</a>
+                                    <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=events" class="btn btn-primary btn-sm">Lihat Detail</a>
                                 </div>
                             </div>
                         </div>
@@ -155,7 +155,7 @@ $stats = [
     </section>
 
     <!-- CTA Section -->
-    <section class="section" style="background: var(--primary-gradient); color: white; text-align: center;">
+    <section class="section" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; text-align: center;">
         <div class="container">
             <h2 style="font-size: 36px; margin-bottom: 20px;">Siap Memulai?</h2>
             <p style="font-size: 18px; margin-bottom: 30px; opacity: 0.95;">Bergabunglah dengan ribuan mahasiswa lainnya</p>
@@ -167,7 +167,7 @@ $stats = [
     </section>
 
     <!-- About Section -->
-    <section id="about" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 20px; text-align: center;">
+    <section id="about" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; padding: 80px 20px; text-align: center;">
         <div style="max-width: 900px; margin: 0 auto;">
             <h2 style="font-size: 42px; margin-bottom: 30px; font-weight: 700;">Tentang EventSite</h2>
             <p style="font-size: 18px; line-height: 1.8; margin-bottom: 20px;">

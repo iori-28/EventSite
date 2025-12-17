@@ -14,6 +14,8 @@ $user_id = $_SESSION['user']['id'];
 // Get filter parameters
 $search = $_GET['search'] ?? '';
 $location = $_GET['location'] ?? '';
+$category = $_GET['category'] ?? '';
+$organizer_filter = $_GET['organizer'] ?? '';
 
 // Build query
 $query = "
@@ -22,19 +24,30 @@ $query = "
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id AND user_id = :user_id) as is_registered
     FROM events e 
     LEFT JOIN users u ON e.created_by = u.id 
-    WHERE e.status = 'approved' AND e.start_at > NOW()
+    WHERE e.status = 'approved' AND e.end_at > NOW()
 ";
 
 $params = [':user_id' => $user_id];
 
 if ($search) {
-    $query .= " AND (e.title LIKE :search OR e.description LIKE :search)";
-    $params[':search'] = "%$search%";
+    $query .= " AND (e.title LIKE :search_title OR e.description LIKE :search_desc)";
+    $params[':search_title'] = "%$search%";
+    $params[':search_desc'] = "%$search%";
 }
 
 if ($location) {
     $query .= " AND e.location LIKE :location";
     $params[':location'] = "%$location%";
+}
+
+if ($category) {
+    $query .= " AND e.category = :category";
+    $params[':category'] = $category;
+}
+
+if ($organizer_filter) {
+    $query .= " AND e.created_by = :organizer";
+    $params[':organizer'] = $organizer_filter;
 }
 
 $query .= " ORDER BY e.start_at ASC";
@@ -47,9 +60,26 @@ $events = $stmt->fetchAll();
 $locations = $db->query("
     SELECT DISTINCT location 
     FROM events 
-    WHERE status = 'approved' AND location IS NOT NULL
+    WHERE status = 'approved' AND location IS NOT NULL AND end_at > NOW()
     ORDER BY location
 ")->fetchAll(PDO::FETCH_COLUMN);
+
+// Get categories for filter
+$categories = $db->query("
+    SELECT DISTINCT category 
+    FROM events 
+    WHERE status = 'approved' AND category IS NOT NULL AND end_at > NOW()
+    ORDER BY category
+")->fetchAll(PDO::FETCH_COLUMN);
+
+// Get organizers (panitia) for filter
+$organizers = $db->query("
+    SELECT DISTINCT u.id, u.name 
+    FROM users u
+    INNER JOIN events e ON e.created_by = u.id
+    WHERE u.role = 'panitia' AND e.status = 'approved' AND e.end_at > NOW()
+    ORDER BY u.name
+")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -81,22 +111,51 @@ $locations = $db->query("
 
             <!-- Filter Section -->
             <div class="card mb-4" style="padding: 20px;">
-                <form method="GET" class="d-flex gap-2" style="flex-wrap: wrap;">
-                    <input
-                        type="text"
-                        name="search"
-                        placeholder="Cari event..."
-                        value="<?= htmlspecialchars($search) ?>"
-                        style="flex: 2; min-width: 200px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px;">
-                    <select name="location" style="flex: 1; min-width: 150px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px;">
-                        <option value="">Semua Lokasi</option>
-                        <?php foreach ($locations as $loc): ?>
-                            <option value="<?= htmlspecialchars($loc) ?>" <?= $location === $loc ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($loc) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                <form method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <input type="hidden" name="page" value="user_browse_events">
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Cari Event</label>
+                        <input
+                            type="text"
+                            name="search"
+                            placeholder="Cari berdasarkan judul atau deskripsi..."
+                            value="<?= htmlspecialchars($search) ?>"
+                            style="padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Lokasi</label>
+                        <select name="location" style="padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;">
+                            <option value="">Semua Lokasi</option>
+                            <?php foreach ($locations as $loc): ?>
+                                <option value="<?= htmlspecialchars($loc) ?>" <?= $location === $loc ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($loc) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Kategori</label>
+                        <select name="category" style="padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;">
+                            <option value="">Semua Kategori</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat) ?>" <?= $category === $cat ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cat) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Panitia</label>
+                        <select name="organizer" style="padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;">
+                            <option value="">Semua Panitia</option>
+                            <?php foreach ($organizers as $org): ?>
+                                <option value="<?= $org['id'] ?>" <?= $organizer_filter == $org['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($org['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: 42px;">Filter</button>
                 </form>
             </div>
 

@@ -155,12 +155,25 @@ if ($action === 'register') {
 
         require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
         require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/vendor/autoload.php';
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/services/QRCodeService.php';
 
-        // Get event details for better notification
+        // Get event details and QR token
         $db = Database::connect();
-        $stmt = $db->prepare("SELECT title, start_at, location FROM events WHERE id = ?");
-        $stmt->execute([$event_id]);
+        $stmt = $db->prepare("
+            SELECT e.title, e.start_at, e.location, p.qr_token 
+            FROM events e
+            LEFT JOIN participants p ON p.event_id = e.id AND p.user_id = ?
+            WHERE e.id = ?
+        ");
+        $stmt->execute([$user_id, $event_id]);
         $event = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Generate QR Code
+        $qrCodeImage = '';
+        if (!empty($event['qr_token'])) {
+            $qrCodeImage = QRCodeService::generateQRImageTag($event['qr_token'], 250);
+        }
 
         // prepare payload & email
         $email = $_SESSION['user']['email'] ?? '';
@@ -173,15 +186,33 @@ if ($action === 'register') {
         ];
 
         $subject = "Registrasi Event Berhasil - {$event['title']}";
-        $body = "<h3>Pendaftaran Berhasil!</h3>
+        $eventDetailUrl = APP_BASE_URL . "/index.php?page=event-detail&id={$event_id}&from=email";
+
+        $body = "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                 <h3 style='color: #c9384a;'>✓ Pendaftaran Berhasil!</h3>
                  <p>Hai <b>{$userName}</b>,</p>
                  <p>Kamu berhasil mendaftar untuk event <b>{$event['title']}</b>.</p>
                  <p><strong>Detail Event:</strong></p>
                  <ul>
-                   <li>Tanggal: " . date('d M Y, H:i', strtotime($event['start_at'])) . "</li>
-                   <li>Lokasi: {$event['location']}</li>
+                   <li>📅 Tanggal: " . date('d M Y, H:i', strtotime($event['start_at'])) . "</li>
+                   <li>📍 Lokasi: {$event['location']}</li>
                  </ul>
-                 <p>Kami menunggu kehadiran Anda!</p>";
+                 <div style='text-align: center; margin: 30px 0;'>
+                   <a href='" . $eventDetailUrl . "' style='display: inline-block; background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;'>Lihat Detail Event</a>
+                 </div>
+                 <hr style='border: 1px solid #eee; margin: 30px 0;'>
+                 <h4 style='text-align: center; color: #1a1a1a;'>QR Code Kehadiran</h4>
+                 <div style='text-align: center; padding: 20px;'>
+                   {$qrCodeImage}
+                 </div>
+                 <p style='text-align: center; font-size: 13px; color: #666;'>
+                   Tunjukkan QR code ini kepada panitia untuk konfirmasi kehadiran Anda
+                 </p>
+                 <hr style='border: 1px solid #eee; margin: 30px 0;'>
+                 <p style='font-size: 12px; color: #999; text-align: center;'>
+                   Kami menunggu kehadiran Anda! Sampai jumpa di event.
+                 </p>
+                 </div>";
 
         $notifResult = NotificationController::createAndSend($user_id, 'registration', $payload, $subject, $body);
 

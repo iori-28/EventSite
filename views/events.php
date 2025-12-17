@@ -8,8 +8,9 @@ $db = Database::connect();
 $search = $_GET['search'] ?? '';
 $location = $_GET['location'] ?? '';
 $date_filter = $_GET['date'] ?? '';
+$organizer_filter = $_GET['organizer'] ?? '';
 
-// Build query
+// Build query with proper parameter handling
 $query = "
     SELECT e.*, u.name as creator_name,
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id) as participant_count
@@ -20,16 +21,26 @@ $query = "
 
 $params = [];
 
-if ($search) {
-    $query .= " AND (e.title LIKE :search OR e.description LIKE :search)";
-    $params[':search'] = "%$search%";
+// Add search filter
+if (!empty($search)) {
+    $query .= " AND (e.title LIKE :search_title OR e.description LIKE :search_desc)";
+    $params['search_title'] = "%$search%";
+    $params['search_desc'] = "%$search%";
 }
 
-if ($location) {
+// Add location filter
+if (!empty($location)) {
     $query .= " AND e.location LIKE :location";
-    $params[':location'] = "%$location%";
+    $params['location'] = "%$location%";
 }
 
+// Add organizer filter
+if (!empty($organizer_filter)) {
+    $query .= " AND e.created_by = :organizer";
+    $params['organizer'] = $organizer_filter;
+}
+
+// Add date filter
 if ($date_filter === 'upcoming') {
     $query .= " AND e.start_at > NOW()";
 } elseif ($date_filter === 'today') {
@@ -40,9 +51,22 @@ if ($date_filter === 'upcoming') {
 
 $query .= " ORDER BY e.start_at ASC";
 
-$stmt = $db->prepare($query);
-$stmt->execute($params);
-$events = $stmt->fetchAll();
+// Debug: Uncomment to see query and params
+// echo "<pre>Query: " . htmlspecialchars($query) . "\n\nParams: "; print_r($params); echo "</pre>"; exit;
+
+// Prepare and execute query
+try {
+    $stmt = $db->prepare($query);
+    $stmt->execute($params);
+    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "<pre>Error: " . $e->getMessage() . "\n\n";
+    echo "Query: " . htmlspecialchars($query) . "\n\n";
+    echo "Params: ";
+    print_r($params);
+    echo "</pre>";
+    exit;
+}
 
 // Get unique locations for filter
 $locations = $db->query("
@@ -51,6 +75,15 @@ $locations = $db->query("
     WHERE status = 'approved' AND location IS NOT NULL
     ORDER BY location
 ")->fetchAll(PDO::FETCH_COLUMN);
+
+// Get organizers (panitia users) for filter
+$organizers = $db->query("
+    SELECT DISTINCT u.id, u.name 
+    FROM users u 
+    JOIN events e ON u.id = e.created_by 
+    WHERE u.role = 'panitia' AND e.status = 'approved'
+    ORDER BY u.name
+")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -71,7 +104,7 @@ $locations = $db->query("
 
         .filter-form {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
             gap: 15px;
             align-items: end;
         }
@@ -204,6 +237,7 @@ $locations = $db->query("
             <!-- Filter Section -->
             <div class="filter-section">
                 <form method="GET" class="filter-form">
+                    <input type="hidden" name="page" value="events">
                     <div class="form-group">
                         <label for="search">Cari Event</label>
                         <input
@@ -221,6 +255,18 @@ $locations = $db->query("
                             <?php foreach ($locations as $loc): ?>
                                 <option value="<?= htmlspecialchars($loc) ?>" <?= $location === $loc ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($loc) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organizer">Panitia</label>
+                        <select id="organizer" name="organizer">
+                            <option value="">Semua Panitia</option>
+                            <?php foreach ($organizers as $org): ?>
+                                <option value="<?= $org['id'] ?>" <?= $organizer_filter == $org['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($org['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -249,7 +295,8 @@ $locations = $db->query("
                 <?php foreach ($events as $event): ?>
                     <?php
                     $is_full = $event['participant_count'] >= $event['capacity'];
-                    $is_past = strtotime($event['start_at']) < time();
+                    $is_past = strtotime($event['end_at']) < time();
+                    $is_completed = in_array($event['status'], ['completed', 'waiting_completion']);
                     ?>
                     <div class="event-card">
                         <div class="event-icon">
@@ -279,15 +326,17 @@ $locations = $db->query("
                             </div>
 
                             <div class="event-actions">
-                                <?php if ($is_past): ?>
-                                    <span class="badge badge-danger">Event Selesai</span>
+                                <?php if ($is_completed): ?>
+                                    <span class="badge badge-success">✅ Selesai</span>
+                                <?php elseif ($is_past): ?>
+                                    <span class="badge badge-info">⏰ Waktu Berakhir</span>
                                 <?php elseif ($is_full): ?>
                                     <span class="badge badge-warning">Penuh</span>
                                 <?php else: ?>
                                     <span class="badge badge-success">Tersedia</span>
                                 <?php endif; ?>
 
-                                <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-primary btn-sm">
+                                <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=events" class="btn btn-primary btn-sm">
                                     Lihat Detail
                                 </a>
                             </div>
@@ -308,7 +357,7 @@ $locations = $db->query("
     </section>
 
     <!-- About Section -->
-    <section id="about" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 20px; text-align: center;">
+    <section id="about" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; padding: 80px 20px; text-align: center;">
         <div style="max-width: 900px; margin: 0 auto;">
             <h2 style="font-size: 42px; margin-bottom: 30px; font-weight: 700;">Tentang EventSite</h2>
             <p style="font-size: 18px; line-height: 1.8; margin-bottom: 20px;">

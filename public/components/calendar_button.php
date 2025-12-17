@@ -20,7 +20,7 @@ function renderCalendarButton($event)
 ?>
 
     <div class="calendar-button-wrapper" style="position: relative; display: inline-block;">
-        <button class="btn btn-calendar" onclick="toggleCalendarDropdown(<?= $event['id'] ?>)" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: transform 0.2s;">
+        <button class="btn btn-calendar" onclick="toggleCalendarDropdown(<?= $event['id'] ?>)" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(201, 56, 74, 0.3); transition: transform 0.2s;">
             <span style="font-size: 18px;">📅</span>
             <span>Add to Calendar</span>
             <span style="font-size: 12px;">▼</span>

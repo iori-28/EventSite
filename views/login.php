@@ -1,8 +1,18 @@
 <?php
 
 
+// Get redirect parameter
+$redirect = $_GET['redirect'] ?? '';
+
 // Redirect jika sudah login
 if (isset($_SESSION['user'])) {
+    // If there's a redirect URL, go there
+    if ($redirect) {
+        header('Location: ' . $redirect);
+        exit;
+    }
+
+    // Otherwise, go to role-based dashboard
     $role = $_SESSION['user']['role'];
     if ($role === 'admin') {
         header('Location: index.php?page=admin_dashboard');
@@ -23,9 +33,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
+    $redirect_after = $_POST['redirect'] ?? '';
 
     if (AuthController::login($email, $password)) {
-        // Redirect ke dashboard sesuai role setelah login berhasil
+        // If there's a redirect URL, go there after login
+        if ($redirect_after) {
+            header('Location: ' . $redirect_after);
+            exit;
+        }
+
+        // Otherwise redirect to dashboard sesuai role
         $role = $_SESSION['user']['role'];
         if ($role === 'admin') {
             header('Location: index.php?page=admin_dashboard');
@@ -53,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <body>
     <div class="auth-container">
         <div class="auth-header">
-            <div class="logo">E</div>
+            <div class="logo">ES</div>
             <h1>Selamat Datang</h1>
             <p>Masuk ke akun EventSite Anda</p>
         </div>
@@ -72,6 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <form method="POST" action="">
             <input type="hidden" name="action" value="login">
+            <?php if ($redirect): ?>
+                <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+            <?php endif; ?>
 
             <div class="form-group">
                 <label for="email">Email</label>

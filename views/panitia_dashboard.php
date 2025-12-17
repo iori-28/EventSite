@@ -124,7 +124,7 @@ $recent_participants = $stmt_parts->fetchAll();
                                             </span>
                                         </p>
                                     </div>
-                                    <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">Lihat</a>
+                                    <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=dashboard" class="btn btn-outline btn-sm">Lihat</a>
                                 </div>
                             <?php endforeach; ?>
                         <?php else: ?>

@@ -14,7 +14,7 @@
                     
                     <!-- Header with Gradient -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                        <td style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); padding: 40px 30px; text-align: center;">
                             <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700;">
                                 🎉 EventSite
                             </h1>
@@ -43,7 +43,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin-bottom: 30px;">
                                 <tr>
                                     <td>
-                                        <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 20px; font-weight: 600;">
+                                        <h3 style="margin: 0 0 15px 0; color: #c9384a; font-size: 20px; font-weight: 600;">
                                             📅 {{event_title}}
                                         </h3>
                                         
@@ -68,7 +68,7 @@
                             </table>
                             
                             <!-- Description -->
-                            <div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
+                            <div style="background-color: #f8f9fa; border-left: 4px solid #c9384a; padding: 20px; margin-bottom: 30px; border-radius: 4px;">
                                 <p style="margin: 0; color: #666666; font-size: 15px; line-height: 1.6;">
                                     {{event_description}}
                                 </p>
@@ -78,7 +78,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{event_detail_url}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                        <a href="{{event_detail_url}}" style="display: inline-block; background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(201, 56, 74, 0.3);">
                                             Lihat Detail Event
                                         </a>
                                     </td>
@@ -103,7 +103,7 @@
                             
                             <p style="margin: 0; color: #666666; font-size: 15px; line-height: 1.6;">
                                 Salam,<br>
-                                <strong style="color: #667eea;">Tim EventSite</strong>
+                                <strong style="color: #c9384a;">Tim EventSite</strong>
                             </p>
                         </td>
                     </tr>
@@ -116,14 +116,14 @@
                             </p>
                             <p style="margin: 0 0 15px 0; color: #999999; font-size: 13px;">
                                 Jika ada pertanyaan, hubungi kami di 
-                                <a href="mailto:support@eventsite.com" style="color: #667eea; text-decoration: none;">support@eventsite.com</a>
+                                <a href="mailto:support@eventsite.com" style="color: #c9384a; text-decoration: none;">support@eventsite.com</a>
                             </p>
                             
                             <!-- Social Links -->
                             <div style="margin-top: 20px;">
-                                <a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; text-decoration: none; font-size: 20px;">📘</a>
-                                <a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; text-decoration: none; font-size: 20px;">📷</a>
-                                <a href="#" style="display: inline-block; margin: 0 8px; color: #667eea; text-decoration: none; font-size: 20px;">🐦</a>
+                                <a href="#" style="display: inline-block; margin: 0 8px; color: #c9384a; text-decoration: none; font-size: 20px;">📘</a>
+                                <a href="#" style="display: inline-block; margin: 0 8px; color: #c9384a; text-decoration: none; font-size: 20px;">📷</a>
+                                <a href="#" style="display: inline-block; margin: 0 8px; color: #c9384a; text-decoration: none; font-size: 20px;">🐦</a>
                             </div>
                             
                             <p style="margin: 20px 0 0 0; color: #cccccc; font-size: 12px;">

@@ -1,5 +1,6 @@
 <?php
-require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/env.php';
+// Support both web and CLI context
+require_once __DIR__ . '/env.php';
 
 class Database
 {

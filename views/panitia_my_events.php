@@ -93,13 +93,13 @@ $events = $stmt->fetchAll();
                                         <?= $event['capacity'] ?>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                                        <span class="badge badge-<?= $event['status'] === 'completed' ? 'success' : ($event['status'] === 'waiting_completion' ? 'info' : ($event['status'] === 'approved' ? 'primary' : ($event['status'] === 'rejected' ? 'danger' : 'warning'))) ?>">
+                                        <span class="badge badge-<?= $event['status'] === 'completed' ? 'success' : ($event['status'] === 'waiting_completion' ? 'info' : ($event['status'] === 'approved' ? 'success' : ($event['status'] === 'rejected' ? 'danger' : 'warning'))) ?>">
                                             <?= $event['status'] === 'completed' ? '✓ Selesai' : ($event['status'] === 'waiting_completion' ? '⏳ Menunggu Approval' : ucfirst($event['status'])) ?>
                                         </span>
                                     </td>
                                     <td style="padding: 15px; border-bottom: 1px solid #eee;">
                                         <div class="d-flex gap-2">
-                                            <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">View</a>
+                                            <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=panitia_my_events" class="btn btn-outline btn-sm">View</a>
 
                                             <?php if ($event['status'] !== 'completed'): ?>
                                                 <a href="index.php?page=panitia_edit_event&id=<?= $event['id'] ?>" class="btn btn-success btn-sm">✏️ Edit</a>

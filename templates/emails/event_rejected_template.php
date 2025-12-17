@@ -57,7 +57,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
                                 <tr>
                                     <td align="center">
-                                        <a href="{{edit_event_url}}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                        <a href="{{edit_event_url}}" style="display: inline-block; background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 12px rgba(201, 56, 74, 0.3);">
                                             Edit Event
                                         </a>
                                     </td>
@@ -70,7 +70,7 @@
                             
                             <p style="margin: 0; color: #666666; font-size: 15px; line-height: 1.6;">
                                 Salam,<br>
-                                <strong style="color: #667eea;">Tim EventSite</strong>
+                                <strong style="color: #c9384a;">Tim EventSite</strong>
                             </p>
                         </td>
                     </tr>

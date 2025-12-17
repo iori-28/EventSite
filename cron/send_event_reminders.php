@@ -17,7 +17,9 @@ date_default_timezone_set('Asia/Jakarta');
 // Load dependencies
 require_once __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../services/QRCodeService.php';
 
 // Log function
 function logMessage($message)
@@ -36,44 +38,67 @@ if (!EVENT_REMINDER_ENABLED) {
 
 try {
     $db = Database::connect();
-    $reminderHours = EVENT_REMINDER_HOURS;
 
-    logMessage("Looking for events starting in {$reminderHours} hours...");
+    // Multiple reminder timing: 24 hours and 1 hour before event
+    $reminderTimings = [24, 1]; // hours before event
 
-    // Calculate time window
-    // Events yang akan dimulai antara NOW + REMINDER_HOURS dan NOW + REMINDER_HOURS + 1 hour
-    $startWindow = date('Y-m-d H:i:s', strtotime("+{$reminderHours} hours"));
-    $endWindow = date('Y-m-d H:i:s', strtotime("+" . ($reminderHours + 1) . " hours"));
+    // If EVENT_REMINDER_HOURS is set, use it as single timing
+    if (defined('EVENT_REMINDER_HOURS') && EVENT_REMINDER_HOURS) {
+        $reminderTimings = [EVENT_REMINDER_HOURS];
+    }
 
-    logMessage("Time window: {$startWindow} to {$endWindow}");
+    logMessage("Reminder timings: " . implode(', ', $reminderTimings) . " hours before event");
 
-    // Get events in the time window that are approved
-    $query = "
-        SELECT 
-            e.id,
-            e.title,
-            e.description,
-            e.location,
-            e.start_at,
-            e.end_at
-        FROM events e
-        WHERE e.status = 'approved'
-        AND e.start_at >= :start_window
-        AND e.start_at < :end_window
-    ";
+    $allEvents = [];
 
-    $stmt = $db->prepare($query);
-    $stmt->execute([
-        ':start_window' => $startWindow,
-        ':end_window' => $endWindow
-    ]);
+    // Get events for each timing window
+    foreach ($reminderTimings as $reminderHours) {
+        logMessage("\nChecking for events starting in {$reminderHours} hours...");
 
-    $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $eventCount = count($events);
+        // Calculate time window
+        $startWindow = date('Y-m-d H:i:s', strtotime("+{$reminderHours} hours"));
+        $endWindow = date('Y-m-d H:i:s', strtotime("+" . ($reminderHours + 1) . " hours"));
 
-    logMessage("Found {$eventCount} event(s) to process");
+        logMessage("Time window: {$startWindow} to {$endWindow}");
 
-    if ($eventCount === 0) {
+        // Get events in the time window that are approved
+        $query = "
+            SELECT 
+                e.id,
+                e.title,
+                e.description,
+                e.location,
+                e.start_at,
+                e.end_at
+            FROM events e
+            WHERE e.status = 'approved'
+            AND e.start_at >= :start_window
+            AND e.start_at < :end_window
+        ";
+
+        $stmt = $db->prepare($query);
+        $stmt->execute([
+            ':start_window' => $startWindow,
+            ':end_window' => $endWindow
+        ]);
+
+        $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $eventCount = count($events);
+
+        logMessage("Found {$eventCount} event(s) for {$reminderHours}h timing");
+
+        // Add reminder_hours info to each event
+        foreach ($events as &$event) {
+            $event['reminder_hours'] = $reminderHours;
+        }
+
+        $allEvents = array_merge($allEvents, $events);
+    }
+
+    $totalEventCount = count($allEvents);
+    logMessage("\n=== Total events to process: {$totalEventCount} ===");
+
+    if ($totalEventCount === 0) {
         logMessage("No events found. Exiting.");
         exit(0);
     }
@@ -91,23 +116,24 @@ try {
     $totalSent = 0;
     $totalFailed = 0;
 
-    foreach ($events as $event) {
+    foreach ($allEvents as $event) {
         $eventId = $event['id'];
         $eventTitle = $event['title'];
+        $reminderHours = $event['reminder_hours'];
 
         logMessage("Processing event #{$eventId}: {$eventTitle}");
 
-        // Get participants for this event
+        // Get participants for this event (all statuses) with QR token
         $participantQuery = "
             SELECT 
                 p.id as participant_id,
                 p.user_id,
+                p.qr_token,
                 u.name as user_name,
                 u.email as user_email
             FROM participants p
             JOIN users u ON p.user_id = u.id
             WHERE p.event_id = :event_id
-            AND p.status = 'registered'
         ";
 
         $participantStmt = $db->prepare($participantQuery);
@@ -128,19 +154,20 @@ try {
             $userName = $participant['user_name'];
             $userEmail = $participant['user_email'];
 
-            // Check if reminder already sent
+            // Check if reminder already sent for this timing
             $checkQuery = "
                 SELECT id FROM notifications
                 WHERE user_id = :user_id
                 AND type = 'event_reminder'
                 AND JSON_EXTRACT(payload, '$.event_id') = :event_id
-                AND created_at >= DATE_SUB(NOW(), INTERVAL 48 HOUR)
+                AND JSON_EXTRACT(payload, '$.reminder_hours') = :reminder_hours
             ";
 
             $checkStmt = $db->prepare($checkQuery);
             $checkStmt->execute([
                 ':user_id' => $userId,
-                ':event_id' => $eventId
+                ':event_id' => $eventId,
+                ':reminder_hours' => $reminderHours
             ]);
 
             if ($checkStmt->fetch()) {
@@ -149,8 +176,19 @@ try {
             }
 
             // Prepare email content
-            $eventDatetime = date('l, d F Y - H:i', strtotime($event['start_at'])) . ' WIB';
-            $eventDetailUrl = APP_BASE_URL . '/public/index.php?page=event-detail&id=' . $eventId;
+            $eventDate = date('d F Y', strtotime($event['start_at']));
+            $eventTime = date('H:i', strtotime($event['start_at']));
+            $eventEndTime = date('H:i', strtotime($event['end_at']));
+            $eventDatetime = "{$eventDate}, {$eventTime} - {$eventEndTime} WIB";
+            $eventDetailUrl = APP_BASE_URL . "/index.php?page=event-detail&id={$eventId}&from=email";
+
+            // Generate QR Code
+            $qrCodeImage = '';
+            if (!empty($participant['qr_token'])) {
+                $qrCodeImage = QRCodeService::generateQRImageTag($participant['qr_token'], 250);
+            } else {
+                $qrCodeImage = '<p style="color: #999;">QR Code tidak tersedia</p>';
+            }
 
             $emailBody = str_replace(
                 [
@@ -159,15 +197,17 @@ try {
                     '{{event_datetime}}',
                     '{{event_location}}',
                     '{{event_description}}',
-                    '{{event_detail_url}}'
+                    '{{event_detail_url}}',
+                    '{{qr_code_image}}'
                 ],
                 [
                     htmlspecialchars($userName),
                     htmlspecialchars($eventTitle),
-                    $eventDatetime,
+                    htmlspecialchars($eventDatetime),
                     htmlspecialchars($event['location'] ?? 'TBA'),
-                    htmlspecialchars(substr($event['description'] ?? '', 0, 200)),
-                    $eventDetailUrl
+                    htmlspecialchars($event['description'] ?? 'Tidak ada deskripsi'),
+                    htmlspecialchars($eventDetailUrl),
+                    $qrCodeImage
                 ],
                 $emailTemplate
             );
@@ -198,6 +238,8 @@ try {
                     ':payload' => json_encode([
                         'event_id' => $eventId,
                         'event_title' => $eventTitle,
+                        'reminder_hours' => $reminderHours,
+                        'event_start' => $event['start_at'],
                         'message' => "Reminder: {$eventTitle} akan dimulai dalam {$reminderHours} jam"
                     ])
                 ]);

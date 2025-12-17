@@ -13,12 +13,128 @@ header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? '';
 $event_id = filter_input(INPUT_POST, 'event_id', FILTER_VALIDATE_INT);
+$force = filter_input(INPUT_POST, 'force', FILTER_VALIDATE_INT) ?? 0;
 
 if (!$event_id || $event_id <= 0) {
     die(json_encode(['success' => false, 'message' => 'Invalid event ID']));
 }
 
 $db = Database::connect();
+
+/* ============================
+   ADMIN DIRECT COMPLETE EVENT
+   ============================ */
+if ($action === 'admin_complete') {
+    try {
+        // Get event details
+        $stmt = $db->prepare("SELECT * FROM events WHERE id = ? AND status = 'approved'");
+        $stmt->execute([$event_id]);
+        $event = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$event) {
+            die(json_encode(['success' => false, 'message' => 'Event not found or not approved']));
+        }
+
+        // Check for participants with attendance
+        $participantsStmt = $db->prepare("
+            SELECT COUNT(*) as count
+            FROM participants 
+            WHERE event_id = ? AND status = 'checked_in'
+        ");
+        $participantsStmt->execute([$event_id]);
+        $participantCount = $participantsStmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+        // If no participants and not forced, require confirmation
+        if ($participantCount == 0 && $force == 0) {
+            die(json_encode([
+                'success' => false,
+                'require_confirm' => true,
+                'message' => 'Event tidak memiliki peserta yang hadir. Tetap selesaikan?'
+            ]));
+        }
+
+        // Begin transaction
+        $db->beginTransaction();
+
+        // Update event status to completed
+        $updateStmt = $db->prepare("
+            UPDATE events 
+            SET status = 'completed', 
+                approved_by = ?, 
+                approved_at = NOW() 
+            WHERE id = ?
+        ");
+        $updateStmt->execute([$_SESSION['user']['id'], $event_id]);
+
+        // Generate certificates if participants exist
+        $successCount = 0;
+        $errorCount = 0;
+        if ($participantCount > 0) {
+            // Get all participants with checked_in status
+            $participantsStmt = $db->prepare("
+                SELECT p.id as participant_id, p.user_id, u.name, u.email
+                FROM participants p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.event_id = ? AND p.status = 'checked_in'
+            ");
+            $participantsStmt->execute([$event_id]);
+            $participants = $participantsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Generate certificates and send notifications
+            foreach ($participants as $participant) {
+                try {
+                    // Generate certificate
+                    $certResult = CertificateController::generate($participant['participant_id']);
+
+                    if ($certResult['success']) {
+                        // Send notification
+                        $subject = "🎉 Sertifikat Event \"{$event['title']}\" Telah Diterbitkan";
+                        $body = "<h3>Selamat, {$participant['name']}!</h3>
+                                 <p>Event <strong>{$event['title']}</strong> telah selesai dan Anda telah terdaftar sebagai peserta yang hadir.</p>
+                                 <p>Sertifikat kehadiran Anda telah diterbitkan dan dapat diunduh melalui dashboard.</p>
+                                 <p><a href='http://localhost/EventSite/public/index.php?page=user_certificates' style='display:inline-block; padding:10px 20px; background:#c9384a; color:white; text-decoration:none; border-radius:5px;'>Lihat Sertifikat</a></p>
+                                 <p>Terima kasih atas partisipasi Anda!</p>";
+
+                        NotificationController::createAndSend(
+                            $participant['user_id'],
+                            'certificate_issued',
+                            [
+                                'participant_id' => $participant['participant_id'],
+                                'certificate_id' => $certResult['certificate_id'],
+                                'event_id' => $event_id,
+                                'event_title' => $event['title'],
+                                'email' => $participant['email']
+                            ],
+                            $subject,
+                            $body
+                        );
+
+                        $successCount++;
+                    } else {
+                        $errorCount++;
+                        error_log("[ADMIN-COMPLETE] Failed to generate certificate for {$participant['name']}");
+                    }
+                } catch (Exception $e) {
+                    $errorCount++;
+                    error_log("[ADMIN-COMPLETE] Error for {$participant['name']}: " . $e->getMessage());
+                }
+            }
+        }
+
+        $db->commit();
+
+        die(json_encode([
+            'success' => true,
+            'message' => 'Event berhasil diselesaikan' . ($participantCount > 0 ? " ($successCount sertifikat digenerate" . ($errorCount > 0 ? ", $errorCount gagal" : "") . ")" : '')
+        ]));
+    } catch (Exception $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        error_log("[ADMIN-COMPLETE] Error: " . $e->getMessage());
+        die(json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]));
+    }
+}
 
 /* =========================
    APPROVE EVENT COMPLETION
@@ -87,7 +203,7 @@ if ($action === 'approve_completion') {
                     $body = "<h3>Selamat, {$participant['name']}!</h3>
                              <p>Event <strong>{$event['title']}</strong> telah selesai dan Anda telah terdaftar sebagai peserta yang hadir.</p>
                              <p>Sertifikat kehadiran Anda telah diterbitkan dan dapat diunduh melalui dashboard.</p>
-                             <p><a href='http://localhost/EventSite/public/index.php?page=user_certificates' style='display:inline-block; padding:10px 20px; background:#667eea; color:white; text-decoration:none; border-radius:5px;'>Lihat Sertifikat</a></p>
+                             <p><a href='http://localhost/EventSite/public/index.php?page=user_certificates' style='display:inline-block; padding:10px 20px; background:#c9384a; color:white; text-decoration:none; border-radius:5px;'>Lihat Sertifikat</a></p>
                              <p>Terima kasih atas partisipasi Anda!</p>";
 
                     error_log("[NOTIF-SEND] Sending notification to: {$participant['email']}");

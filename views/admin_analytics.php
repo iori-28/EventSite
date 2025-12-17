@@ -9,6 +9,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,14 +24,14 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             gap: 30px;
             margin-top: 30px;
         }
-        
+
         .chart-card {
             background: white;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
-        
+
         .chart-card h3 {
             margin: 0 0 20px 0;
             font-size: 18px;
@@ -39,68 +40,69 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             align-items: center;
             gap: 10px;
         }
-        
+
         .chart-container {
             position: relative;
             height: 350px;
         }
-        
+
         .summary-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%);
             color: white;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(201, 56, 74, 0.3);
         }
-        
+
         .summary-card h4 {
             margin: 0 0 5px 0;
             font-size: 14px;
             opacity: 0.9;
         }
-        
+
         .summary-card .value {
             font-size: 32px;
             font-weight: bold;
             margin: 0;
         }
-        
+
         .summary-card.green {
             background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
         }
-        
+
         .summary-card.orange {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
-        
+
         .summary-card.blue {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
-        
+
         .loading {
             text-align: center;
             padding: 40px;
             color: var(--text-muted);
         }
-        
+
         @media (max-width: 768px) {
             .analytics-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .chart-container {
                 height: 300px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
@@ -108,10 +110,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 
         <!-- Main Content -->
         <main class="main-content">
-            <?php 
+            <?php
             $page_title = 'Analytics Dashboard';
             $breadcrumb = 'Statistik dan visualisasi data event';
-            include 'components/dashboard_header.php'; 
+            include 'components/dashboard_header.php';
             ?>
 
             <!-- Summary Stats -->
@@ -189,9 +191,9 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 
         // Color schemes
         const colors = {
-            primary: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a', '#fee140'],
+            primary: ['#c9384a', '#8b1e2e', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#fa709a', '#fee140'],
             gradient: {
-                purple: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)'],
+                purple: ['rgba(201, 56, 74, 0.8)', 'rgba(139, 30, 46, 0.8)'],
                 green: ['rgba(17, 153, 142, 0.8)', 'rgba(56, 239, 125, 0.8)'],
                 orange: ['rgba(240, 147, 251, 0.8)', 'rgba(245, 87, 108, 0.8)'],
                 blue: ['rgba(79, 172, 254, 0.8)', 'rgba(0, 242, 254, 0.8)']
@@ -203,7 +205,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             try {
                 const response = await fetch('api/analytics.php?type=summary');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     const data = result.data;
                     document.getElementById('stat-total-events').textContent = data.total_events;
@@ -221,12 +223,12 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             try {
                 const response = await fetch('api/analytics.php?type=participants_per_event');
                 const result = await response.json();
-                
+
                 if (result.success && result.data.length > 0) {
                     const data = result.data;
                     const labels = data.map(item => item.title.length > 20 ? item.title.substring(0, 20) + '...' : item.title);
                     const values = data.map(item => parseInt(item.participant_count));
-                    
+
                     const ctx = document.getElementById('participantsChart').getContext('2d');
                     participantsChart = new Chart(ctx, {
                         type: 'bar',
@@ -276,12 +278,12 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             try {
                 const response = await fetch('api/analytics.php?type=event_category_popularity');
                 const result = await response.json();
-                
+
                 if (result.success && result.data.length > 0) {
                     const data = result.data;
                     const labels = data.map(item => item.category);
                     const values = data.map(item => parseInt(item.event_count));
-                    
+
                     const ctx = document.getElementById('categoryChart').getContext('2d');
                     categoryChart = new Chart(ctx, {
                         type: 'pie',
@@ -326,10 +328,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             try {
                 const response = await fetch('api/analytics.php?type=registration_trend');
                 const result = await response.json();
-                
+
                 if (result.success) {
                     const data = result.data;
-                    
+
                     // Format month labels
                     const labels = data.map(item => {
                         const [year, month] = item.month.split('-');
@@ -337,7 +339,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
                         return `${monthNames[parseInt(month) - 1]} ${year}`;
                     });
                     const values = data.map(item => parseInt(item.registration_count));
-                    
+
                     const ctx = document.getElementById('trendChart').getContext('2d');
                     trendChart = new Chart(ctx, {
                         type: 'line',
@@ -346,13 +348,13 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
                             datasets: [{
                                 label: 'Pendaftaran',
                                 data: values,
-                                borderColor: '#667eea',
-                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                borderColor: '#c9384a',
+                                backgroundColor: 'rgba(201, 56, 74, 0.1)',
                                 borderWidth: 3,
                                 fill: true,
                                 tension: 0.4,
                                 pointRadius: 5,
-                                pointBackgroundColor: '#667eea',
+                                pointBackgroundColor: '#c9384a',
                                 pointBorderColor: '#fff',
                                 pointBorderWidth: 2,
                                 pointHoverRadius: 7
@@ -387,7 +389,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
             try {
                 const response = await fetch('api/analytics.php?type=event_status');
                 const result = await response.json();
-                
+
                 if (result.success && result.data.length > 0) {
                     const data = result.data;
                     const labels = data.map(item => {
@@ -401,7 +403,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
                         return statusMap[item.status] || item.status;
                     });
                     const values = data.map(item => parseInt(item.count));
-                    
+
                     const ctx = document.getElementById('statusChart').getContext('2d');
                     statusChart = new Chart(ctx, {
                         type: 'doughnut',
@@ -443,4 +445,5 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
         document.addEventListener('DOMContentLoaded', initCharts);
     </script>
 </body>
+
 </html>

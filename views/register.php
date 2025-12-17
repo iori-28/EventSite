@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <body>
     <div class="auth-container">
         <div class="auth-header">
-            <div class="logo">E</div>
+            <div class="logo">ES</div>
             <h1>Buat Akun Baru</h1>
             <p>Daftar untuk mengakses EventSite</p>
         </div>
