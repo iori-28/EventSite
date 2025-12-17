@@ -167,44 +167,42 @@ $organizers = $db->query("
                         $is_full = $event['participant_count'] >= $event['capacity'];
                         $is_registered = $event['is_registered'] > 0;
                         ?>
-                        <div class="card">
-                            <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
-                                📅
-                            </div>
-                            <div class="card-body">
-                                <h3 class="card-title" style="font-size: 18px;"><?= htmlspecialchars($event['title']) ?></h3>
-                                <p class="card-text" style="font-size: 14px; margin-bottom: 10px;">
-                                    <?= date('d M Y, H:i', strtotime($event['start_at'])) ?>
-                                </p>
-                                <p class="card-text" style="font-size: 14px;">
-                                    📍 <?= htmlspecialchars($event['location']) ?>
-                                </p>
+                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=user_browse_events" style="text-decoration: none; color: inherit; display: block; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
+                            <div class="card" style="height: 100%; cursor: pointer;">
+                                <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
+                                    📅
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="card-title" style="font-size: 18px;"><?= htmlspecialchars($event['title']) ?></h3>
+                                    <p class="card-text" style="font-size: 14px; margin-bottom: 10px;">
+                                        <?= date('d M Y, H:i', strtotime($event['start_at'])) ?>
+                                    </p>
+                                    <p class="card-text" style="font-size: 14px;">
+                                        📍 <?= htmlspecialchars($event['location']) ?>
+                                    </p>
 
-                                <div class="d-flex justify-between align-center mt-3">
-                                    <span class="text-muted" style="font-size: 12px;">
-                                        <?= $event['participant_count'] ?>/<?= $event['capacity'] ?> Peserta
-                                    </span>
+                                    <div class="d-flex justify-between align-center mt-3">
+                                        <span class="text-muted" style="font-size: 12px;">
+                                            <?= $event['participant_count'] ?>/<?= $event['capacity'] ?> Peserta
+                                        </span>
 
-                                    <?php if ($is_registered): ?>
-                                        <button class="btn btn-outline btn-sm" disabled style="opacity: 0.6; cursor: not-allowed;">
-                                            ✅ Terdaftar
-                                        </button>
-                                    <?php elseif ($is_full): ?>
-                                        <button class="btn btn-outline btn-sm" disabled style="opacity: 0.6; cursor: not-allowed; border-color: var(--warning-color); color: var(--warning-color);">
-                                            ❌ Penuh
-                                        </button>
-                                    <?php else: ?>
-                                        <form method="POST" action="/EventSite/public/api/participants.php" style="display: inline;">
-                                            <input type="hidden" name="action" value="register">
-                                            <input type="hidden" name="event_id" value="<?= $event['id'] ?>">
-                                            <button type="submit" class="btn btn-primary btn-sm">
-                                                Daftar
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
+                                        <?php if ($is_registered): ?>
+                                            <span class="btn btn-outline btn-sm" style="opacity: 0.8; cursor: pointer;">
+                                                ✅ Terdaftar
+                                            </span>
+                                        <?php elseif ($is_full): ?>
+                                            <span class="btn btn-outline btn-sm" style="opacity: 0.8; border-color: var(--warning-color); color: var(--warning-color); cursor: pointer;">
+                                                ❌ Penuh
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="btn btn-primary btn-sm" style="cursor: pointer;">
+                                                📖 Lihat Detail
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>

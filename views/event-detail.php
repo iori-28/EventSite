@@ -67,6 +67,9 @@ if ($from === 'admin_manage_events') {
 } elseif ($from === 'user_my_events') {
     $back_url = 'index.php?page=user_my_events';
     $back_text = '← Kembali ke Event Saya';
+} elseif ($from === 'user_browse_events') {
+    $back_url = 'index.php?page=user_browse_events';
+    $back_text = '← Kembali ke Jelajahi Event';
 } elseif ($from === 'user_dashboard') {
     $back_url = 'index.php?page=user_dashboard';
     $back_text = '← Kembali ke Dashboard';
@@ -378,7 +381,7 @@ if ($from === 'admin_manage_events') {
             btn.disabled = true;
             btn.innerHTML = 'Memproses...';
 
-            fetch('api/participants.php', {
+            fetch('/EventSite/public/api/participants.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -398,7 +401,7 @@ if ($from === 'admin_manage_events') {
                         alert('Event ini belum disetujui.');
                     } else if (status === 'NO_SESSION') {
                         alert('Sesi habis. Silakan login kembali.');
-                        window.location.href = 'login.php';
+                        window.location.href = 'index.php?page=login';
                     } else {
                         alert('Gagal mendaftar. Terjadi kesalahan sistem: ' + status);
                     }
