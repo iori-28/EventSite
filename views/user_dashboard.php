@@ -47,7 +47,7 @@ $upcoming_events = $stmt_events->fetchAll();
 $stmt_notif = $db->prepare("
     SELECT * FROM notifications 
     WHERE user_id = ? 
-    ORDER BY send_at DESC 
+    ORDER BY COALESCE(send_at, created_at) DESC 
     LIMIT 5
 ");
 $stmt_notif->execute([$user_id]);
@@ -150,7 +150,11 @@ $notifications = $stmt_notif->fetchAll();
                                         <?= htmlspecialchars(json_decode($notif['payload'] ?? '{}', true)['message'] ?? 'Notifikasi baru') ?>
                                     </p>
                                     <span style="font-size: 11px; color: var(--text-muted);">
-                                        <?= date('d M H:i', strtotime($notif['send_at'])) ?>
+                                        <?php if (!empty($notif['send_at'])): ?>
+                                            <?= date('d M H:i', strtotime($notif['send_at'])) ?>
+                                        <?php else: ?>
+                                            <?= date('d M H:i', strtotime($notif['created_at'])) ?>
+                                        <?php endif; ?>
                                     </span>
                                 </div>
                             <?php endforeach; ?>

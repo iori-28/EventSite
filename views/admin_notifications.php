@@ -15,13 +15,13 @@ $user_id = $_SESSION['user']['id'];
 $stmt = $db->prepare("
     SELECT * FROM notifications 
     WHERE user_id = ? 
-    ORDER BY send_at DESC
+    ORDER BY COALESCE(send_at, created_at) DESC
 ");
 $stmt->execute([$user_id]);
 $notifications = $stmt->fetchAll();
 
-// Mark as read (optional, simple logic)
-// $db->query("UPDATE notifications SET is_read = 1 WHERE user_id = $user_id");
+// Mark as read (update status to 'sent' when viewing)
+$db->prepare("UPDATE notifications SET status = 'sent' WHERE user_id = ? AND status = 'pending'")->execute([$user_id]);
 
 ?>
 <!DOCTYPE html>
@@ -53,14 +53,58 @@ $notifications = $stmt->fetchAll();
                     <?php if (count($notifications) > 0): ?>
                         <ul class="notification-list" style="list-style: none; padding: 0; margin: 0;">
                             <?php foreach ($notifications as $notif): ?>
-                                <li style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; gap: 15px; background: <?= $notif['is_read'] ? 'white' : '#f8f9fa' ?>;">
-                                    <div style="font-size: 20px;">
-                                        <?= $notif['type'] === 'info' ? 'ℹ️' : '🔔' ?>
+                                <?php
+                                // Parse payload JSON
+                                $payload = json_decode($notif['payload'] ?? '{}', true);
+                                $eventTitle = $payload['event_title'] ?? $payload['title'] ?? '';
+                                $type = $notif['type'];
+
+                                // Generate informative message based on type
+                                $icon = '🔔';
+                                $subject = '';
+                                $message = '';
+
+                                switch ($type) {
+                                    case 'new_event':
+                                        $icon = '🎉';
+                                        $subject = 'Event Baru Dibuat';
+                                        $panitiaNama = $payload['panitia_name'] ?? 'Panitia';
+                                        $message = $eventTitle ? "{$panitiaNama} membuat event baru '{$eventTitle}' yang menunggu persetujuan" : 'Event baru menunggu persetujuan';
+                                        break;
+                                    case 'event_need_approval':
+                                        $icon = '⏳';
+                                        $subject = 'Perlu Persetujuan';
+                                        $message = $eventTitle ? "Event '{$eventTitle}' memerlukan persetujuan Anda" : 'Event baru memerlukan persetujuan';
+                                        break;
+                                    case 'system':
+                                        $icon = 'ℹ️';
+                                        $subject = 'Notifikasi Sistem';
+                                        $message = $payload['message'] ?? 'Notifikasi sistem';
+                                        break;
+                                    default:
+                                        $icon = '🔔';
+                                        $subject = $notif['subject'] ?? ucfirst(str_replace('_', ' ', $type));
+                                        $message = $notif['message'] ?? $payload['message'] ?? 'Notifikasi baru';
+                                }
+                                ?>
+                                <li style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; gap: 15px; align-items: flex-start; background: <?= ($notif['status'] === 'pending') ? '#f8f9fa' : 'white' ?>;">
+                                    <div style="width: 40px; height: 40px; background: #f5f7fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                        <?= $icon ?>
                                     </div>
-                                    <div>
-                                        <h4 style="margin: 0 0 5px; font-size: 16px;"><?= htmlspecialchars($notif['subject']) ?></h4>
-                                        <div style="color: #555; font-size: 14px; margin-bottom: 5px;"><?= $notif['message'] ?></div> <!-- Allow HTML in message -->
-                                        <small class="text-muted"><?= date('d M Y H:i', strtotime($notif['send_at'])) ?></small>
+                                    <div style="flex: 1;">
+                                        <p style="margin-bottom: 3px; color: var(--text-dark); font-weight: 600; font-size: 15px;">
+                                            <?= htmlspecialchars($subject) ?>
+                                        </p>
+                                        <p style="margin-bottom: 5px; color: var(--text-dark); font-weight: 400;">
+                                            <?= htmlspecialchars($message) ?>
+                                        </p>
+                                        <span style="font-size: 12px; color: var(--text-muted);">
+                                            <?php if (!empty($notif['send_at'])): ?>
+                                                <?= date('d M Y, H:i', strtotime($notif['send_at'])) ?>
+                                            <?php else: ?>
+                                                <?= date('d M Y, H:i', strtotime($notif['created_at'])) ?>
+                                            <?php endif; ?>
+                                        </span>
                                     </div>
                                 </li>
                             <?php endforeach; ?>

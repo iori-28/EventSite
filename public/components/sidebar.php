@@ -99,6 +99,11 @@ if ($role === 'user') {
             'link' => 'index.php?page=admin_manage_users',
             'active' => 'admin_manage_users'
         ],
+        'Notifikasi' => [
+            'icon' => '🔔',
+            'link' => 'index.php?page=admin_notifications',
+            'active' => 'admin_notifications'
+        ],
         'Laporan' => [
             'icon' => '📈',
             'link' => 'index.php?page=admin_reports',
