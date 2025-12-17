@@ -13,7 +13,7 @@ $user_id = $_SESSION['user']['id'];
 
 // Get my events
 $query = "
-    SELECT e.*, p.status as registration_status, p.registered_at 
+    SELECT e.*, p.status as registration_status, p.registered_at, p.qr_token, p.id as participant_id
     FROM participants p
     JOIN events e ON p.event_id = e.id 
     WHERE p.user_id = :user_id
@@ -89,7 +89,10 @@ foreach ($all_events as $event) {
                                     <p class="text-muted mb-3" style="font-size: 14px;">📍 <?= htmlspecialchars($event['location']) ?></p>
 
                                     <div class="d-flex gap-2">
-                                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-primary btn-sm" style="flex: 1;">Detail</a>
+                                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=user_my_events" class="btn btn-primary btn-sm" style="flex: 1;">Detail</a>
+                                        <button onclick="showQRCode('<?= $event['qr_token'] ?>', '<?= htmlspecialchars($event['title']) ?>')" class="btn btn-secondary btn-sm" style="flex: 1;">
+                                            📱 QR Code
+                                        </button>
                                         <button onclick="cancelRegistration(<?= $event['id'] ?>)" class="btn btn-outline btn-sm" style="flex: 1; border-color: var(--danger-color); color: var(--danger-color);">Batalkan</button>
                                     </div>
                                 </div>
@@ -146,7 +149,48 @@ foreach ($all_events as $event) {
         </main>
     </div>
 
+    <!-- QR Code Modal -->
+    <div id="qr-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; max-width:400px; width:90%; text-align:center;">
+            <h3 style="margin-bottom:20px; color:#1a1a1a;">QR Code Kehadiran</h3>
+            <p style="margin-bottom:15px; font-size:14px; color:#666;" id="qr-event-title"></p>
+            <div id="qr-code" style="margin:20px auto; display:flex; justify-content:center;"></div>
+            <p style="margin-top:15px; font-size:13px; color:#999;">Tunjukkan QR code ini kepada panitia untuk konfirmasi kehadiran</p>
+            <button onclick="closeQRModal()" class="btn btn-primary" style="margin-top:20px;">Tutup</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
+        function showQRCode(token, eventTitle) {
+            const modal = document.getElementById('qr-modal');
+            const qrContainer = document.getElementById('qr-code');
+            const titleEl = document.getElementById('qr-event-title');
+
+            // Clear previous QR
+            qrContainer.innerHTML = '';
+
+            // Set title
+            titleEl.textContent = eventTitle;
+
+            // Generate QR Code
+            new QRCode(qrContainer, {
+                text: token,
+                width: 256,
+                height: 256,
+                colorDark: "#1a1a1a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Show modal
+            modal.style.display = 'flex';
+        }
+
+        function closeQRModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
         function cancelRegistration(eventId) {
             if (!confirm('Apakah Anda yakin ingin membatalkan pendaftaran event ini?')) return;
 

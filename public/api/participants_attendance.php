@@ -124,5 +124,59 @@ if ($action === 'bulk_update') {
     exit;
 }
 
+/* =========================
+   VERIFY QR CODE
+   ========================= */
+if ($action === 'verify_qr') {
+    $qr_token = $_POST['qr_token'] ?? '';
+
+    if (empty($qr_token)) {
+        die(json_encode(['success' => false, 'message' => 'QR token is required']));
+    }
+
+    try {
+        // Find participant by QR token and verify panitia owns the event
+        $stmt = $db->prepare("
+            SELECT p.id, p.status, u.name as participant_name, e.title as event_title
+            FROM participants p
+            JOIN events e ON p.event_id = e.id
+            JOIN users u ON p.user_id = u.id
+            WHERE p.qr_token = ? AND e.created_by = ?
+        ");
+        $stmt->execute([$qr_token, $user_id]);
+        $participant = $stmt->fetch();
+
+        if (!$participant) {
+            die(json_encode(['success' => false, 'message' => 'QR Code tidak valid atau bukan event Anda']));
+        }
+
+        // Check if already checked in
+        if ($participant['status'] === 'checked_in') {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Peserta sudah melakukan check-in sebelumnya',
+                'participant_name' => $participant['participant_name']
+            ]);
+            exit;
+        }
+
+        // Update to checked_in
+        $update = $db->prepare("UPDATE participants SET status = 'checked_in' WHERE id = ?");
+        $success = $update->execute([$participant['id']]);
+
+        echo json_encode([
+            'success' => $success,
+            'message' => $success ? 'Kehadiran berhasil dikonfirmasi' : 'Gagal konfirmasi kehadiran',
+            'participant_name' => $participant['participant_name'],
+            'event_title' => $participant['event_title']
+        ]);
+    } catch (PDOException $e) {
+        error_log("QR verification error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+    }
+
+    exit;
+}
+
 // Invalid action
 echo json_encode(['success' => false, 'message' => 'Invalid action']);

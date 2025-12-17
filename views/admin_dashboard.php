@@ -114,7 +114,7 @@ $recent_users = $db->query("
                                         </p>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>" class="btn btn-outline btn-sm">Lihat</a>
+                                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=dashboard" class="btn btn-outline btn-sm">Lihat</a>
                                         <form method="POST" action="api/event_approval.php" style="display:inline;">
                                             <input type="hidden" name="action" value="approve">
                                             <input type="hidden" name="id" value="<?= $event['id'] ?>">

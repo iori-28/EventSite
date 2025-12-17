@@ -8,9 +8,9 @@
 
 /* CSS Variables */
 :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --primary-color: #667eea;
-    --primary-dark: #764ba2;
+    --primary-gradient: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%);
+    --primary-color: #c9384a;
+    --primary-dark: #8b1e2e;
     --secondary-color: #f8f9fa;
     --text-dark: #333;
     --text-light: #666;
@@ -96,7 +96,11 @@ body {
     justify-content: center;
     color: white;
     font-weight: bold;
-    font-size: 20px;
+    font-size: 17px;
+    letter-spacing: 0.8px;
+    text-align: center;
+    line-height: 1;
+    padding-left: 1.5px;
 }
 
 .navbar-menu {
@@ -490,6 +494,22 @@ body {
 
 .gap-3 {
     gap: 24px;
+}
+
+/* ==========================================
+   PROFILE DROPDOWN
+   ========================================== */
+.profile-btn:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(201, 56, 74, 0.15);
+}
+
+.profile-dropdown a:hover {
+    background: #f8f9fa !important;
+}
+
+.profile-dropdown a:last-child:hover {
+    background: #fff5f5 !important;
 }
 
 /* ==========================================

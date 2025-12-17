@@ -44,7 +44,7 @@ $certificates = CertificateController::getByUser($user_id);
                     <?php foreach ($certificates as $cert): ?>
                         <div class="card" style="overflow: hidden;">
                             <!-- Certificate Preview -->
-                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; color: white; position: relative;">
+                            <div style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); padding: 40px 20px; text-align: center; color: white; position: relative;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">🏆</div>
                                 <h3 style="color: white; margin-bottom: 10px; font-size: 18px;">Certificate of Participation</h3>
                                 <p style="font-size: 12px; opacity: 0.9;">Issued on <?= date('d F Y', strtotime($cert['issued_at'])) ?></p>

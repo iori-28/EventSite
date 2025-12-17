@@ -60,6 +60,7 @@ $all_my_events = $my_events->fetchAll();
     <title>Daftar Peserta - EventSite</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 
 <body>
@@ -179,6 +180,16 @@ $all_my_events = $my_events->fetchAll();
                 <?php endif; ?>
             </div>
         </main>
+    </div>
+
+    <!-- QR Scanner Modal -->
+    <div id="qr-scanner-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:white; padding:30px; border-radius:8px; max-width:600px; width:90%; position:relative;">
+            <button onclick="closeQRScanner()" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:24px; cursor:pointer; color:#999;">&times;</button>
+            <h3 style="margin-bottom:20px; color:#1a1a1a; text-align:center;">Scan QR Code Peserta</h3>
+            <div id="qr-reader" style="width:100%;"></div>
+            <p style="margin-top:15px; font-size:13px; color:#999; text-align:center;">Arahkan kamera ke QR code yang ditampilkan peserta</p>
+        </div>
     </div>
 
     <script>
@@ -305,15 +316,96 @@ $all_my_events = $my_events->fetchAll();
                 });
         }
 
-        // QR Code Scanner (Placeholder)
-        function openQRScanner() {
-            alert('Fitur QR Scanner akan segera hadir!\n\nUntuk saat ini, gunakan:\n- Tandai Hadir (individual)\n- Tandai Hadir (selected)\n- Tandai Semua Hadir');
+        // QR Code Scanner
+        let html5QrcodeScanner = null;
 
-            // TODO: Implement QR Scanner
-            // You can integrate libraries like:
-            // - html5-qrcode
-            // - jsQR
-            // - QuaggaJS
+        function openQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            if (!modal) return;
+
+            modal.style.display = 'flex';
+
+            // Initialize scanner
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5QrcodeScanner(
+                    "qr-reader", {
+                        fps: 10,
+                        qrbox: {
+                            width: 250,
+                            height: 250
+                        },
+                        aspectRatio: 1.0
+                    },
+                    false
+                );
+
+                html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+            }
+        }
+
+        function closeQRScanner() {
+            const modal = document.getElementById('qr-scanner-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+
+            // Stop scanner
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.clear();
+                html5QrcodeScanner = null;
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            console.log(`QR Code detected: ${decodedText}`);
+
+            // Close scanner
+            closeQRScanner();
+
+            // Verify QR token and mark attendance
+            verifyQRToken(decodedText);
+        }
+
+        function onScanFailure(error) {
+            // Silent fail - scanner continuously trying
+        }
+
+        function verifyQRToken(qrToken) {
+            const btn = document.querySelector('.btn-success');
+            const originalText = btn ? btn.textContent : '';
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Memproses...';
+            }
+
+            fetch('api/participants_attendance.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `action=verify_qr&qr_token=${encodeURIComponent(qrToken)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✓ Kehadiran ${data.participant_name} berhasil dikonfirmasi!`);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.message || 'QR Code tidak valid atau sudah digunakan'));
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.textContent = originalText;
+                        }
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                    }
+                });
         }
     </script>
 </body>

@@ -2,7 +2,7 @@
     <div class="container">
         <div class="footer-grid">
             <div class="footer-brand">
-                <div class="logo">E</div>
+                <div class="logo">ES</div>
                 <h3>EventSite</h3>
                 <p>Platform manajemen event kampus terbaik untuk mahasiswa.</p>
             </div>
@@ -49,14 +49,18 @@
     .footer-brand .logo {
         width: 40px;
         height: 40px;
-        background: var(--primary-color);
+        background: var(--primary-gradient);
         color: white;
-        border-radius: 8px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-size: 20px;
+        font-size: 17px;
+        letter-spacing: 0.8px;
+        text-align: center;
+        line-height: 1;
+        padding-left: 1.5px;
         margin-bottom: 15px;
     }
 

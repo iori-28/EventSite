@@ -113,7 +113,7 @@ $notifications = $stmt_notif->fetchAll();
                     <div class="card-body" style="padding: 0;">
                         <?php if (count($upcoming_events) > 0): ?>
                             <?php foreach ($upcoming_events as $event): ?>
-                                <div style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; gap: 15px; align-items: center;">
+                                <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=user_dashboard" style="padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; gap: 15px; align-items: center; text-decoration: none; color: inherit; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='white'">
                                     <div style="width: 50px; height: 50px; background: #eee; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;">
                                         <span style="font-size: 10px; color: var(--text-muted);"><?= date('M', strtotime($event['start_at'])) ?></span>
                                         <span style="font-size: 18px; font-weight: bold;"><?= date('d', strtotime($event['start_at'])) ?></span>
@@ -125,7 +125,7 @@ $notifications = $stmt_notif->fetchAll();
                                         </p>
                                     </div>
                                     <span class="badge badge-info">Registered</span>
-                                </div>
+                                </a>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="text-center" style="padding: 40px 20px;">

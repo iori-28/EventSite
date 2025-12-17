@@ -20,7 +20,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%);
             padding: 30px;
             text-align: center;
             color: white;
@@ -77,7 +77,7 @@
         }
         .btn {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%);
             color: white;
             padding: 14px 32px;
             text-decoration: none;
@@ -150,9 +150,23 @@
                 </div>
             </div>
             
-            <center>
-                <a href="{{event_detail_url}}" class="btn">Lihat Detail Event</a>
-            </center>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{event_detail_url}}" style="display: inline-block; background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600;">Lihat Detail Event</a>
+            </div>
+            
+            <!-- QR Code Section -->
+            <div style="margin-top: 40px; padding: 25px; background: #ffffff; border: 2px dashed #c9384a; border-radius: 8px; text-align: center;">
+                <h3 style="color: #c9384a; margin: 0 0 15px 0; font-size: 18px;">📱 QR Code Kehadiran</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                    Tunjukkan QR code ini kepada panitia untuk konfirmasi kehadiran Anda
+                </p>
+                <div style="background: white; padding: 15px; display: inline-block; border-radius: 8px;">
+                    {{qr_code_image}}
+                </div>
+                <p style="color: #999; font-size: 12px; margin-top: 15px;">
+                    Simpan email ini atau screenshot QR code untuk memudahkan check-in
+                </p>
+            </div>
             
             <p style="color: #777; font-size: 14px; margin-top: 30px; line-height: 1.6;">
                 Jika Anda memiliki pertanyaan atau tidak dapat hadir, silakan hubungi panitia event atau 

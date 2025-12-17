@@ -110,8 +110,10 @@ if ($role === 'user') {
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <div class="sidebar-logo">E</div>
-        <a href="index.php?page=<?= $role ?>_dashboard" class="sidebar-brand">EventSite</a>
+        <a href="index.php?page=home" style="display: flex; align-items: center; text-decoration: none; gap: 12px;">
+            <div class="sidebar-logo">ES</div>
+            <span class="sidebar-brand">EventSite</span>
+        </a>
     </div>
 
     <div class="sidebar-menu">
@@ -123,12 +125,6 @@ if ($role === 'user') {
                 <span><?= $label ?></span>
             </a>
         <?php endforeach; ?>
-
-        <div class="menu-label" style="margin-top: 15px;">Lainnya</div>
-        <a href="index.php?page=home" class="menu-item">
-            <i>🏠</i>
-            <span>Halaman Utama</span>
-        </a>
     </div>
 
     <div class="sidebar-footer">
