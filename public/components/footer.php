@@ -20,8 +20,9 @@
             <div class="footer-contact">
                 <h4>Hubungi Kami</h4>
                 <p>📧 support@eventsite.com</p>
-                <p>📱 +62 812 3456 7890</p>
-                <p>📍 Gedung Fasilkom, Universitas X</p>
+                <p>📱 +62 00000000000</p>
+                <p>📍 Jl. ABCD No. 123, Pluto</p>
+                <p>💻 <a href="https://github.com/iori-28/EventSite" target="_blank" style="color: #666; text-decoration: none;">GitHub Repository</a></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -97,6 +98,14 @@
     .footer-contact p {
         color: #666;
         margin: 0;
+    }
+
+    .footer-contact a {
+        transition: color 0.3s;
+    }
+
+    .footer-contact a:hover {
+        color: var(--primary-color);
     }
 
     .footer-bottom {

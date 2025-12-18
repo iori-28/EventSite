@@ -1,7 +1,27 @@
 <?php
+
+/**
+ * Events API Endpoint
+ * 
+ * RESTful API untuk mengelola event operations.
+ * Mendukung actions: create, get_approved, approve, reject, delete, update
+ * 
+ * Authentication: Required (session-based)
+ * Authorization: Role-based (admin, panitia, user)
+ * 
+ * Response Format: Plain text status codes
+ * Success: EVENT_CREATED, EVENT_APPROVED, EVENT_DELETED, etc.
+ * Error: NO_SESSION, FORBIDDEN, EVENT_FAILED, etc.
+ * 
+ * @package EventSite\API
+ * @author EventSite Team
+ * @version 2.0
+ */
+
 session_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/EventController.php';
 
+// Authentication check: User must be logged in
 if (!isset($_SESSION['user'])) {
     die("NO_SESSION");
 }
@@ -10,6 +30,7 @@ $action = $_POST['action'] ?? '';
 
 /* =========================
    CREATE EVENT
+   Role: Admin (auto-approved) or Panitia (pending)
    ========================= */
 if ($action === 'create') {
 

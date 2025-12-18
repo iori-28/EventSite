@@ -114,6 +114,19 @@ Auth::check('admin');
             include 'components/dashboard_header.php';
             ?>
 
+            <!-- Export Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                <a href="api/export_analytics.php?type=participants" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 10px 20px; border: 2px solid var(--primary-color); color: var(--primary-color); border-radius: 8px; font-weight: 500; transition: all 0.3s;">
+                    📊 Export Participants CSV
+                </a>
+                <a href="api/export_analytics.php?type=category" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 10px 20px; border: 2px solid var(--primary-color); color: var(--primary-color); border-radius: 8px; font-weight: 500; transition: all 0.3s;">
+                    📈 Export Category CSV
+                </a>
+                <a href="api/export_analytics.php?type=full" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 10px 20px; background: var(--primary-gradient); color: white; border-radius: 8px; font-weight: 500; box-shadow: 0 2px 8px rgba(201, 56, 74, 0.3); transition: all 0.3s;">
+                    📋 Export Full Report CSV
+                </a>
+            </div>
+
             <!-- Summary Stats -->
             <div class="summary-stats">
                 <div class="summary-card">

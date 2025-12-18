@@ -2,7 +2,26 @@
 
 /**
  * Analytics API Endpoint
- * Provides data for charts and statistics
+ * 
+ * RESTful API untuk mengambil data analytics dan statistics.
+ * Mendukung actions: summary, participants, category, trend, status
+ * 
+ * Features:
+ * - Event statistics summary (total events, participants, etc.)
+ * - Participants per event analysis
+ * - Category popularity metrics
+ * - Registration trend (time-series)
+ * - Event status distribution
+ * 
+ * Authentication: Required (session-based)
+ * Authorization: Admin only
+ * 
+ * Response Format: JSON
+ * Structure varies by action type (see individual action comments)
+ * 
+ * @package EventSite\API
+ * @author EventSite Team
+ * @version 2.0
  */
 
 header('Content-Type: application/json');

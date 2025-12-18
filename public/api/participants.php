@@ -1,4 +1,27 @@
 <?php
+
+/**
+ * Participants API Endpoint
+ * 
+ * RESTful API untuk mengelola participant registrations.
+ * Mendukung actions: register, cancel, get_user_events, get_all
+ * 
+ * Features:
+ * - Event registration dengan QR token generation
+ * - Cancel registration dengan capacity increment
+ * - Query user's registered events
+ * - Get all participants (admin/panitia only)
+ * 
+ * Authentication: Required (session-based)
+ * Authorization: User untuk register/cancel, Admin/Panitia untuk get_all
+ * 
+ * Response Format: JSON or plain text status codes
+ * 
+ * @package EventSite\API
+ * @author EventSite Team
+ * @version 2.0
+ */
+
 session_start();
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/ParticipantController.php';
 

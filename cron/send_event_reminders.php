@@ -11,9 +11,6 @@
  * - Windows Task Scheduler: Lihat dokumentasi di README
  */
 
-// Set timezone
-date_default_timezone_set('Asia/Jakarta');
-
 // Load dependencies
 require_once __DIR__ . '/../config/env.php';
 require_once __DIR__ . '/../config/db.php';

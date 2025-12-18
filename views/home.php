@@ -202,46 +202,81 @@ $stats = [
     <!-- Contact Section -->
     <section id="contact" style="background: #f8f9fa; padding: 80px 20px;">
         <div style="max-width: 900px; margin: 0 auto;">
-            <h2 style="font-size: 42px; margin-bottom: 50px; font-weight: 700; text-align: center; color: var(--text-dark);">Hubungi Kami</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;">
-                <div>
-                    <h3 style="margin-bottom: 30px; color: var(--text-dark);">Informasi Kontak</h3>
-                    <div style="margin-bottom: 30px;">
-                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px;">
-                            <div style="font-size: 24px;">📧</div>
-                            <div>
-                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Email</h4>
-                                <p style="color: var(--text-muted); font-size: 14px;">support@eventsite.com</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; gap: 15px; margin-bottom: 25px;">
-                            <div style="font-size: 24px;">📞</div>
-                            <div>
-                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Telepon</h4>
-                                <p style="color: var(--text-muted); font-size: 14px;">+62 (021) 1234-5678</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: flex-start; gap: 15px;">
-                            <div style="font-size: 24px;">📍</div>
-                            <div>
-                                <h4 style="margin-bottom: 5px; color: var(--text-dark);">Kantor</h4>
-                                <p style="color: var(--text-muted); font-size: 14px;">Jl. Teknologi No. 123, Jakarta, Indonesia</p>
-                            </div>
-                        </div>
-                    </div>
+            <h2 style="font-size: 42px; margin-bottom: 20px; font-weight: 700; text-align: center; color: var(--text-dark);">Hubungi Kami</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 50px; font-size: 16px;">Punya pertanyaan? Kami siap membantu Anda</p>
+
+            <!-- Contact Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 50px;">
+                <!-- Email Card -->
+                <div class="contact-card" style="background: white; padding: 40px 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;"
+                    onclick="copyToClipboard('support@eventsite.com', this)"
+                    onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📧</div>
+                    <h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-dark);">Email Support</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;">Kirim email ke kami</p>
+                    <p style="color: var(--primary-color); font-weight: 600; font-size: 14px; word-break: break-all;">support@eventsite.com</p>
+                    <div class="copy-hint" style="margin-top: 15px; font-size: 12px; color: var(--text-muted); opacity: 0.7;">Klik untuk copy</div>
                 </div>
-                <div>
-                    <h3 style="margin-bottom: 30px; color: var(--text-dark);">Kirim Pesan</h3>
-                    <form style="display: flex; flex-direction: column; gap: 15px;">
-                        <input type="text" placeholder="Nama Anda" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px;" required>
-                        <input type="email" placeholder="Email Anda" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px;" required>
-                        <textarea placeholder="Pesan Anda" rows="4" style="padding: 12px; border: 2px solid var(--border-color); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit;" required></textarea>
-                        <button type="submit" class="btn btn-primary" style="padding: 12px; border: none; cursor: pointer; font-weight: 600;">Kirim Pesan</button>
-                    </form>
+
+                <!-- Phone Card -->
+                <div class="contact-card" style="background: white; padding: 40px 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;"
+                    onclick="copyToClipboard('+62 (021) 1234-5678', this)"
+                    onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                    <div style="font-size: 48px; margin-bottom: 20px;">📞</div>
+                    <h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-dark);">Telepon</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;">Hubungi kami langsung</p>
+                    <p style="color: var(--primary-color); font-weight: 600; font-size: 14px;">+62 00000000000</p>
+                    <div class="copy-hint" style="margin-top: 15px; font-size: 12px; color: var(--text-muted); opacity: 0.7;">Klik untuk copy</div>
                 </div>
+
+                <!-- GitHub Card -->
+                <div class="contact-card" style="background: white; padding: 40px 30px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;"
+                    onclick="window.open('https://github.com/iori-28/EventSite', '_blank')"
+                    onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.12)'"
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                    <div style="font-size: 48px; margin-bottom: 20px;">💻</div>
+                    <h3 style="font-size: 20px; margin-bottom: 10px; color: var(--text-dark);">GitHub</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;">Lihat source code</p>
+                    <p style="color: var(--primary-color); font-weight: 600; font-size: 14px;">github.com/iori-28/EventSite</p>
+                    <div class="copy-hint" style="margin-top: 15px; font-size: 12px; color: var(--text-muted); opacity: 0.7;">Klik untuk buka</div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div style="text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">⏰ Waktu Respon: Maksimal 24 jam</p>
+                <p style="color: var(--text-muted); font-size: 14px;">📍 Jl. ABCD No. 123, Pluto</p>
             </div>
         </div>
     </section>
+
+    <script>
+        // Copy to clipboard function
+        function copyToClipboard(text, element) {
+            // Create temporary input
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            // Show feedback
+            const originalHint = element.querySelector('.copy-hint').innerHTML;
+            element.querySelector('.copy-hint').innerHTML = '✅ Tersalin!';
+            element.querySelector('.copy-hint').style.color = '#28a745';
+            element.querySelector('.copy-hint').style.opacity = '1';
+
+            // Reset after 2 seconds
+            setTimeout(() => {
+                element.querySelector('.copy-hint').innerHTML = originalHint;
+                element.querySelector('.copy-hint').style.color = 'var(--text-muted)';
+                element.querySelector('.copy-hint').style.opacity = '0.7';
+            }, 2000);
+        }
+    </script>
 
     <?php include 'components/footer.php'; ?>
 </body>
