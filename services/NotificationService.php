@@ -166,8 +166,9 @@ class NotificationService
             $mail->SMTPDebug  = 0; // 0 = no debug, 1 = client, 2 = client+server
 
             /* FROM & TO */
-            $mail->setFrom(MAIL_USERNAME, MAIL_FROM_NAME);
+            $mail->setFrom(MAIL_USERNAME, 'EventSite Support');
             $mail->addAddress($toEmail);
+            $mail->addReplyTo('support@eventsite.com', 'EventSite Support');
 
             /* CONTENT */
             $mail->isHTML(true);

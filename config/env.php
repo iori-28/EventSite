@@ -1,5 +1,8 @@
 <?php
 
+// Set default timezone for entire application
+date_default_timezone_set('Asia/Jakarta');
+
 $env = parse_ini_file(__DIR__ . '/../.env');
 
 /* DATABASE */

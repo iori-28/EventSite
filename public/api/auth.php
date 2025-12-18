@@ -1,4 +1,28 @@
 <?php
+
+/**
+ * Authentication API Endpoint
+ * 
+ * RESTful API untuk mengelola user authentication.
+ * Mendukung actions: login, register, logout, google-login
+ * 
+ * Features:
+ * - Traditional email/password authentication
+ * - Google OAuth 2.0 integration
+ * - Session management
+ * - Password hashing dengan bcrypt (PASSWORD_DEFAULT)
+ * 
+ * Authentication: Not required (this is the auth endpoint)
+ * 
+ * Response Format: Plain text status codes
+ * Success: LOGIN_SUCCESS, REGISTER_SUCCESS, LOGOUT_SUCCESS
+ * Error: LOGIN_FAILED, USER_EXISTS, REGISTER_FAILED
+ * 
+ * @package EventSite\API
+ * @author EventSite Team
+ * @version 2.0
+ */
+
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/AuthController.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

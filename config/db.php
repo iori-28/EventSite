@@ -1,4 +1,29 @@
 <?php
+
+/**
+ * Database Connection Class
+ * 
+ * Singleton-style PDO database connection manager.
+ * Connects to MySQL/MariaDB menggunakan credentials dari env.php.
+ * 
+ * Features:
+ * - PDO with prepared statements (SQL injection prevention)
+ * - Error mode: PDO::ERRMODE_EXCEPTION
+ * - UTF-8 charset for international character support
+ * - Persistent connection for performance
+ * - Support both web and CLI context
+ * 
+ * Usage:
+ * $db = Database::connect();
+ * $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+ * $stmt->execute([$user_id]);
+ * $user = $stmt->fetch(PDO::FETCH_ASSOC);
+ * 
+ * @package EventSite\Config
+ * @author EventSite Team
+ * @version 1.0
+ */
+
 // Support both web and CLI context
 require_once __DIR__ . '/env.php';
 
