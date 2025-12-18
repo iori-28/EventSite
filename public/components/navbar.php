@@ -27,9 +27,13 @@ $current_page = isset($_SERVER['PHP_SELF']) ? basename($_SERVER['PHP_SELF']) : '
                 ?>
                 <div class="profile-dropdown-wrapper" style="position: relative;" onmouseenter="showProfileDropdown()" onmouseleave="hideProfileDropdown()">
                     <button onclick="toggleProfileDropdown()" class="profile-btn" style="display: flex; align-items: center; gap: 8px; background: white; border: 2px solid var(--border-color); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
-                        <div style="width: 32px; height: 32px; background: var(--primary-gradient); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
-                            <?= $user_initial ?>
-                        </div>
+                        <?php if (!empty($_SESSION['user']['profile_picture'])): ?>
+                            <img src="<?= htmlspecialchars($_SESSION['user']['profile_picture']) ?>" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        <?php else: ?>
+                            <div style="width: 32px; height: 32px; background: var(--primary-gradient); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px;">
+                                <?= $user_initial ?>
+                            </div>
+                        <?php endif; ?>
                         <span style="font-size: 14px; color: var(--text-dark); font-weight: 500;"><?= $user_firstname ?></span>
                         <span style="font-size: 10px; color: var(--text-muted);">▼</span>
                     </button>
@@ -39,6 +43,15 @@ $current_page = isset($_SERVER['PHP_SELF']) ? basename($_SERVER['PHP_SELF']) : '
                             <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;"><?= htmlspecialchars($_SESSION['user']['name']) ?></div>
                             <div style="font-size: 12px; color: var(--text-muted); text-transform: capitalize;"><?= htmlspecialchars($_SESSION['user']['role']) ?></div>
                         </div>
+                        <?php
+                        $profile_link = 'index.php?page=user_profile';
+                        if ($_SESSION['user']['role'] === 'admin') $profile_link = 'index.php?page=admin_profile';
+                        if ($_SESSION['user']['role'] === 'panitia') $profile_link = 'index.php?page=panitia_profile';
+                        ?>
+                        <a href="<?= $profile_link ?>" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-dark); transition: background 0.2s; border-bottom: 1px solid #f0f0f0;">
+                            <span style="font-size: 18px;">👤</span>
+                            <span style="font-weight: 500;">Profile</span>
+                        </a>
                         <a href="<?= $dashboard_link ?>" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text-dark); transition: background 0.2s; border-bottom: 1px solid #f0f0f0;">
                             <span style="font-size: 18px;">📊</span>
                             <span style="font-weight: 500;">Dashboard</span>

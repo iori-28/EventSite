@@ -1,11 +1,9 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 
-// Check role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
-    header('Location: index.php?page=login');
-    exit;
-}
+// Check authentication and refresh session from database
+Auth::check('user');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
@@ -19,7 +17,7 @@ $organizer_filter = $_GET['organizer'] ?? '';
 
 // Build query
 $query = "
-    SELECT e.*, u.name as creator_name,
+    SELECT e.*, e.event_image, u.name as creator_name,
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id) as participant_count,
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id AND user_id = :user_id) as is_registered
     FROM events e 
@@ -169,9 +167,13 @@ $organizers = $db->query("
                         ?>
                         <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=user_browse_events" style="text-decoration: none; color: inherit; display: block; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'">
                             <div class="card" style="height: 100%; cursor: pointer;">
-                                <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px;">
-                                    📅
-                                </div>
+                                <?php if (!empty($event['event_image'])): ?>
+                                    <div class="card-img" style="background: url('<?= htmlspecialchars($event['event_image']) ?>') center/cover; height: 200px;"></div>
+                                <?php else: ?>
+                                    <div class="card-img" style="background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; height: 200px;">
+                                        📅
+                                    </div>
+                                <?php endif; ?>
                                 <div class="card-body">
                                     <h3 class="card-title" style="font-size: 18px;"><?= htmlspecialchars($event['title']) ?></h3>
                                     <p class="card-text" style="font-size: 14px; margin-bottom: 10px;">

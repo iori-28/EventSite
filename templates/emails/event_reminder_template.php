@@ -113,6 +113,13 @@
                 <strong>🔔 Event Anda akan segera dimulai!</strong>
             </div>
             
+            <!-- Event Image (if exists) -->
+            <?php if (!empty($event_image)): ?>
+            <div style="margin: 20px 0; border-radius: 8px; overflow: hidden;">
+                <img src="{{event_image}}" alt="{{event_title}}" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
+            </div>
+            <?php endif; ?>
+            
             <p style="color: #555; line-height: 1.8; margin-bottom: 20px;">
                 Halo <strong>{{participant_name}}</strong>,
             </p>

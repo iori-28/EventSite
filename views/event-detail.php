@@ -88,6 +88,9 @@ if ($from === 'admin_manage_events') {
             $back_text = '← Kembali ke Dashboard';
         }
     }
+} elseif ($from === 'home') {
+    $back_url = 'index.php?page=home';
+    $back_text = '← Kembali ke Beranda';
 } elseif ($from === 'dashboard') {
     // Redirect to appropriate dashboard based on role
     if (isset($_SESSION['user'])) {
@@ -264,6 +267,18 @@ if ($from === 'admin_manage_events') {
                         </div>
                     </div>
 
+                    <!-- Event Image Section -->
+                    <?php if (!empty($event['event_image'])): ?>
+                        <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid var(--border-color);">
+                            <h3 style="margin-bottom: 20px;">Dokumentasi Event</h3>
+                            <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                <img src="<?= htmlspecialchars($event['event_image']) ?>"
+                                    alt="<?= htmlspecialchars($event['title']) ?>"
+                                    style="width: 100%; height: auto; display: block; object-fit: cover; max-height: 500px;">
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($is_completed): ?>
                         <div class="alert alert-success" style="margin-top: 30px; padding: 20px; background: #d4edda; color: #155724; border-radius: 8px;">
                             ✅ Event ini telah selesai
@@ -391,24 +406,26 @@ if ($from === 'admin_manage_events') {
                     console.log(status);
 
                     if (status === 'REGISTER_SUCCESS') {
-                        alert('Berhasil mendaftar event! Halaman akan dimuat ulang.');
+                        // Redirect immediately without alert
                         location.reload();
                     } else if (status === 'ALREADY_REGISTERED') {
-                        alert('Anda sudah terdaftar di event ini.');
+                        showToast('Anda sudah terdaftar di event ini.', 'warning');
                     } else if (status === 'EVENT_FULL') {
-                        alert('Maaf, kuota event sudah penuh.');
+                        showToast('Maaf, kuota event sudah penuh.', 'error');
                     } else if (status === 'EVENT_NOT_APPROVED') {
-                        alert('Event ini belum disetujui.');
+                        showToast('Event ini belum disetujui.', 'error');
                     } else if (status === 'NO_SESSION') {
-                        alert('Sesi habis. Silakan login kembali.');
-                        window.location.href = 'index.php?page=login';
+                        showToast('Sesi habis. Silakan login kembali.', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'index.php?page=login';
+                        }, 1500);
                     } else {
-                        alert('Gagal mendaftar. Terjadi kesalahan sistem: ' + status);
+                        showToast('Gagal mendaftar. Terjadi kesalahan sistem.', 'error');
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    alert('Terjadi error koneksi.');
+                    showToast('Terjadi error koneksi.', 'error');
                 })
                 .finally(() => {
                     btn.disabled = false;
@@ -434,8 +451,71 @@ if ($from === 'admin_manage_events') {
 
         function copyLink() {
             navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Link berhasil disalin!');
+                showToast('Link berhasil disalin!', 'success');
             });
+        }
+
+        function showToast(message, type = 'info') {
+            // Create toast container if not exists
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999;';
+                document.body.appendChild(container);
+            }
+
+            // Create toast element
+            const toast = document.createElement('div');
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            };
+
+            toast.style.cssText = `
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease-out;
+                max-width: 350px;
+                word-wrap: break-word;
+            `;
+            toast.textContent = message;
+
+            // Add animation keyframes if not exists
+            if (!document.getElementById('toast-styles')) {
+                const style = document.createElement('style');
+                style.id = 'toast-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(400px); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(400px); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            container.appendChild(toast);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => {
+                    container.removeChild(toast);
+                    if (container.children.length === 0) {
+                        document.body.removeChild(container);
+                    }
+                }, 300);
+            }, 3000);
         }
     </script>
 </body>

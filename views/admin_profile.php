@@ -3,7 +3,7 @@
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 
 // Check authentication and refresh session from database
-Auth::check('user');
+Auth::check('admin');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user']['name'] = $name;
                 $_SESSION['user']['email'] = $email;
 
-                header('Location: index.php?page=user_profile&profile_updated=1');
+                header('Location: index.php?page=admin_profile&profile_updated=1');
                 exit;
             } catch (PDOException $e) {
                 $error_msg = "Gagal memperbarui profil: " . $e->getMessage();
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([':profile_picture' => $profile_picture, ':id' => $user_id]);
 
                     $_SESSION['user']['profile_picture'] = $profile_picture;
-                    header('Location: index.php?page=user_profile&photo_updated=1');
+                    header('Location: index.php?page=admin_profile&photo_updated=1');
                     exit;
                 } else {
                     $error_msg = 'Gagal mengupload foto.';
@@ -91,6 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'delete_photo') {
+        // Delete profile picture (only if not from Google OAuth)
         $stmt = $db->prepare("SELECT profile_picture, oauth_provider FROM users WHERE id = :id");
         $stmt->execute([':id' => $user_id]);
         $current_user = $stmt->fetch();
@@ -105,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':id' => $user_id]);
 
             $_SESSION['user']['profile_picture'] = null;
-            header('Location: index.php?page=user_profile&photo_deleted=1');
+            header('Location: index.php?page=admin_profile&photo_deleted=1');
             exit;
         } else {
             $error_msg = 'Tidak dapat menghapus foto dari OAuth provider atau foto tidak ada.';
@@ -131,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $hashed_pass = password_hash($new_pass, PASSWORD_DEFAULT);
                 $stmt = $db->prepare("UPDATE users SET password = :password WHERE id = :id");
                 $stmt->execute([':password' => $hashed_pass, ':id' => $user_id]);
-                header('Location: index.php?page=user_profile&password_updated=1');
+                header('Location: index.php?page=admin_profile&password_updated=1');
                 exit;
             }
         }
@@ -149,7 +150,7 @@ $user = $stmt->fetch();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya - EventSite</title>
+    <title>Profil Admin - EventSite</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/dashboard.css">
 </head>
@@ -164,7 +165,7 @@ $user = $stmt->fetch();
             <header class="dashboard-header">
                 <div class="header-title">
                     <button class="sidebar-toggle" onclick="toggleSidebar()" style="display:none; background:none; border:none; font-size:24px; cursor:pointer; margin-right:10px;">☰</button>
-                    <h1>Profil Saya</h1>
+                    <h1>Profil Admin</h1>
                     <div class="header-breadcrumb">Kelola informasi akun Anda</div>
                 </div>
             </header>

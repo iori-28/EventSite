@@ -12,7 +12,7 @@ $organizer_filter = $_GET['organizer'] ?? '';
 
 // Build query with proper parameter handling
 $query = "
-    SELECT e.*, u.name as creator_name,
+    SELECT e.*, e.event_image, u.name as creator_name,
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id) as participant_count
     FROM events e 
     LEFT JOIN users u ON e.created_by = u.id 
@@ -299,8 +299,8 @@ $organizers = $db->query("
                     $is_completed = in_array($event['status'], ['completed', 'waiting_completion']);
                     ?>
                     <div class="event-card">
-                        <div class="event-icon">
-                            📅
+                        <div class="event-icon" style="<?php if (!empty($event['event_image'])): ?>background: url('<?= htmlspecialchars($event['event_image']) ?>') center/cover;<?php endif; ?>">
+                            <?php if (empty($event['event_image'])): ?>📅<?php endif; ?>
                         </div>
 
                         <div class="event-info">
