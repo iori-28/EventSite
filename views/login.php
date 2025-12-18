@@ -28,6 +28,21 @@ if (isset($_SESSION['user'])) {
 $error = '';
 $success = '';
 
+// Check for OAuth error message
+if (isset($_SESSION['error_message'])) {
+    $error = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
+
+// Check for OAuth success
+if (isset($_GET['oauth'])) {
+    if ($_GET['oauth'] === 'success') {
+        $success = 'Login dengan Google berhasil!';
+    } elseif ($_GET['oauth'] === 'registered') {
+        $success = 'Akun berhasil dibuat! Selamat datang!';
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
     require_once '../controllers/AuthController.php';
 

@@ -19,11 +19,11 @@ if ($action === 'register') {
     $result = ParticipantController::register($user_id, $event_id);
 
     if ($result === "NOT_APPROVED") {
-        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=not_approved');
+        die("EVENT_NOT_APPROVED");
     } elseif ($result === "FULL") {
-        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=event_full');
+        die("EVENT_FULL");
     } elseif ($result === "ALREADY_REGISTERED") {
-        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=already_registered');
+        die("ALREADY_REGISTERED");
     } elseif ($result === true) {
 
         // Send registration confirmation notification
@@ -61,11 +61,10 @@ if ($action === 'register') {
 
         NotificationController::createAndSend($user_id, 'registration', $payload, $subject, $template);
 
-        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=success');
+        die("REGISTER_SUCCESS");
     } else {
-        header('Location: /EventSite/public/index.php?page=user_browse_events&msg=failed');
+        die("REGISTER_FAILED");
     }
-    exit;
 }
 
 /* =========================

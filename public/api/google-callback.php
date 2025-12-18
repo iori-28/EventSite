@@ -88,25 +88,23 @@ try {
     $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existingUser) {
-        // USER EXISTS - Update google_id and profile picture if needed
-        if (empty($existingUser['google_id'])) {
-            $updateStmt = $db->prepare("
-                UPDATE users 
-                SET google_id = ?, 
-                    profile_picture = ?, 
-                    oauth_provider = 'google' 
-                WHERE id = ?
-            ");
-            $updateStmt->execute([$googleId, $profilePicture, $existingUser['id']]);
-        }
+        // USER EXISTS - Always update google_id, profile picture, and oauth provider
+        $updateStmt = $db->prepare("
+            UPDATE users 
+            SET google_id = ?, 
+                profile_picture = ?, 
+                oauth_provider = 'google' 
+            WHERE id = ?
+        ");
+        $updateStmt->execute([$googleId, $profilePicture, $existingUser['id']]);
 
-        // Login the user
+        // Login the user with fresh data from Google
         $_SESSION['user'] = [
             'id' => $existingUser['id'],
             'email' => $existingUser['email'],
             'name' => $existingUser['name'],
             'role' => $existingUser['role'],
-            'profile_picture' => $profilePicture ?? $existingUser['profile_picture']
+            'profile_picture' => $profilePicture
         ];
 
         // Redirect based on role
@@ -116,7 +114,9 @@ try {
             default => 'user_dashboard'
         };
 
-        header("Location: ../index.php?page=$redirectPage&oauth=success");
+        // Build proper URL - keep /public in path
+        $baseUrl = rtrim(APP_BASE_URL, '/');
+        header("Location: $baseUrl/index.php?page=$redirectPage&oauth=success");
         exit;
     } else {
         // USER DOESN'T EXIST - Create new account
@@ -154,7 +154,8 @@ try {
         ];
 
         // Redirect to user dashboard with welcome message
-        header("Location: ../index.php?page=user_dashboard&oauth=registered");
+        $baseUrl = rtrim(APP_BASE_URL, '/');
+        header("Location: $baseUrl/index.php?page=user_dashboard&oauth=registered");
         exit;
     }
 } catch (Exception $e) {
@@ -162,6 +163,9 @@ try {
     error_log('Google OAuth Error: ' . $e->getMessage());
 
     $_SESSION['error_message'] = 'Login dengan Google gagal: ' . $e->getMessage();
-    header('Location: ../index.php?page=login&oauth=error');
+
+    // Build proper URL - keep /public in path
+    $baseUrl = rtrim(APP_BASE_URL, '/');
+    header("Location: $baseUrl/index.php?page=login&oauth=error");
     exit;
 }

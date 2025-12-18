@@ -1,11 +1,9 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 
-// Check role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-    header('Location: index.php?page=login');
-    exit;
-}
+// Check authentication and refresh session from database
+Auth::check('admin');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
@@ -73,6 +71,21 @@ if ($event_id) {
             $breadcrumb = 'Kelola peserta event dan generate sertifikat';
             include 'components/dashboard_header.php';
             ?>
+
+            <!-- Breadcrumb Navigation -->
+            <?php if ($event_id): ?>
+                <div style="margin-bottom: 20px;">
+                    <a href="index.php?page=admin_edit_event&id=<?= $event_id ?>" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+                        ← Kembali ke Edit Event
+                    </a>
+                </div>
+            <?php else: ?>
+                <div style="margin-bottom: 20px;">
+                    <a href="index.php?page=admin_manage_events" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px;">
+                        ← Kembali ke Kelola Event
+                    </a>
+                </div>
+            <?php endif; ?>
 
             <!-- Event Selector -->
             <div class="card" style="margin-bottom: 30px;">

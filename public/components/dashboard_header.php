@@ -23,14 +23,14 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
     <div class="header-actions" style="display: flex; align-items: center; gap: 20px;">
         <!-- Notification Dropdown -->
         <div class="notification-dropdown" style="position: relative;">
-            <button onclick="toggleNotifications()" class="btn-icon" style="background: none; border: none; font-size: 20px; cursor: pointer; position: relative;">
+            <button onclick="toggleNotifications()" class="btn-icon" style="background: none; border: none; font-size: 24px; cursor: pointer; position: relative; padding: 8px;">
                 🔔
                 <?php if ($unread_count > 0): ?>
-                    <span class="badge-count" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: <?= $unread_count > 0 ? 'block' : 'none' ?>;"><?= $unread_count ?></span>
+                    <span class="badge-count" style="position: absolute; top: 2px; right: 2px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; display: <?= $unread_count > 0 ? 'block' : 'none' ?>;"><?= $unread_count ?></span>
                 <?php endif; ?>
             </button>
 
-            <div id="notif-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 300px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+            <div id="notif-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 320px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; margin-top: 8px;">
                 <div style="padding: 10px 15px; border-bottom: 1px solid #eee; font-weight: bold; display: flex; justify-content: space-between;">
                     <span>Notifikasi</span>
                     <?php
@@ -99,49 +99,13 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
                 </div>
             </div>
         </div>
-
-        <!-- User Dropdown -->
-        <div class="user-dropdown" style="position: relative;">
-            <div onclick="toggleUserMenu()" class="user-info-header" style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px; border-radius: 8px; transition: background 0.2s;">
-                <div class="avatar" style="width: 32px; height: 32px; background: #eee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    <?= strtoupper(substr($_SESSION['user']['name'], 0, 1)) ?>
-                </div>
-                <span style="font-size: 14px; display: none; @media (min-width: 768px) { display: block; }"><?= htmlspecialchars($_SESSION['user']['name']) ?> ▼</span>
-            </div>
-
-            <div id="user-menu" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; width: 200px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; overflow: hidden;">
-                <a href="index.php?page=<?= $_SESSION['user']['role'] ?>_profile" style="display: block; padding: 12px 20px; color: var(--text-dark); text-decoration: none; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='white'">
-                    👤 Profile
-                </a>
-                <a href="index.php?page=logout" onclick="return confirm('Apakah Anda yakin ingin keluar?')" style="display: block; padding: 12px 20px; color: #dc3545; text-decoration: none; font-weight: 500;" onmouseover="this.style.background='#ffe6e6'" onmouseout="this.style.background='white'">
-                    🚪 Logout
-                </a>
-            </div>
-        </div>
     </div>
 </header>
 
 <script>
     function toggleNotifications() {
         const menu = document.getElementById('notif-menu');
-        const userMenu = document.getElementById('user-menu');
-        // Close other
-        if (userMenu) userMenu.style.display = 'none';
-
-        if (menu.style.display === 'none') {
-            menu.style.display = 'block';
-        } else {
-            menu.style.display = 'none';
-        }
-    }
-
-    function toggleUserMenu() {
-        const menu = document.getElementById('user-menu');
-        const notifMenu = document.getElementById('notif-menu');
-        // Close other
-        if (notifMenu) notifMenu.style.display = 'none';
-
-        if (menu.style.display === 'none') {
+        if (menu.style.display === 'none' || menu.style.display === '') {
             menu.style.display = 'block';
         } else {
             menu.style.display = 'none';
@@ -154,12 +118,6 @@ $latest_notifs = NotificationController::getLatest($user_id, 5);
         const notifMenu = document.getElementById('notif-menu');
         if (notifDropdown && !notifDropdown.contains(event.target)) {
             notifMenu.style.display = 'none';
-        }
-
-        const userDropdown = document.querySelector('.user-dropdown');
-        const userMenu = document.getElementById('user-menu');
-        if (userDropdown && !userDropdown.contains(event.target)) {
-            userMenu.style.display = 'none';
         }
     });
 </script>

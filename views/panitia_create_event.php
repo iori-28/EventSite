@@ -1,11 +1,9 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 
-// Check role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'panitia') {
-    header('Location: index.php?page=login');
-    exit;
-}
+// Check authentication and refresh session from database
+Auth::check('panitia');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/EventController.php';
 

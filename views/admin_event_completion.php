@@ -1,16 +1,15 @@
 <?php
 // Session already started in index.php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
+
+// Check authentication and refresh session from database
+Auth::check('admin');
+
 // Prevent caching for fresh data
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('Pragma: no-cache');
 header('Expires: 0');
-
-// Check role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
-    header('Location: index.php?page=login');
-    exit;
-}
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();

@@ -1,11 +1,9 @@
 <?php
 
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 
-// Check role
-if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'user') {
-    header('Location: index.php?page=login');
-    exit;
-}
+// Check authentication and refresh session from database
+Auth::check('user');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
