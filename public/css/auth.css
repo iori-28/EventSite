@@ -153,6 +153,35 @@ body {
     z-index: 1;
 }
 
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 14px;
+    background: white;
+    color: #444;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-bottom: 10px;
+}
+
+.btn-google:hover {
+    background: #f8f8f8;
+    border-color: #c9384a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn-google:active {
+    transform: translateY(0);
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 20px;

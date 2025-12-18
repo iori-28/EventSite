@@ -13,6 +13,13 @@ $user_id = $_SESSION['user']['id'];
 $success_msg = '';
 $error_msg = '';
 
+// Check for success messages from redirects
+if (isset($_GET['profile_updated'])) {
+    $success_msg = "Profil berhasil diperbarui!";
+} elseif (isset($_GET['password_updated'])) {
+    $success_msg = "Password berhasil diubah!";
+}
+
 // Handle Profile Update
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
@@ -30,7 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user']['name'] = $name;
                 $_SESSION['user']['email'] = $email;
 
-                $success_msg = "Profil berhasil diperbarui!";
+                header('Location: index.php?page=panitia_profile&profile_updated=1');
+                exit;
             } catch (PDOException $e) {
                 $error_msg = "Gagal memperbarui profil: " . $e->getMessage();
             }
@@ -48,13 +56,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([':id' => $user_id]);
             $user = $stmt->fetch();
 
-            if (password_verify($current_pass, $user['password'])) {
+            if (!password_verify($current_pass, $user['password'])) {
+                $error_msg = "Password saat ini salah.";
+            } elseif (password_verify($new_pass, $user['password'])) {
+                $error_msg = "Password baru tidak boleh sama dengan password lama.";
+            } else {
                 $hashed_pass = password_hash($new_pass, PASSWORD_DEFAULT);
                 $stmt = $db->prepare("UPDATE users SET password = :password WHERE id = :id");
                 $stmt->execute([':password' => $hashed_pass, ':id' => $user_id]);
-                $success_msg = "Password berhasil diubah!";
-            } else {
-                $error_msg = "Password saat ini salah.";
+                header('Location: index.php?page=panitia_profile&password_updated=1');
+                exit;
             }
         }
     }
@@ -139,17 +150,32 @@ $user = $stmt->fetch();
 
                             <div class="form-group mb-3">
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Password Saat Ini</label>
-                                <input type="password" name="current_password" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                <div class="password-toggle" style="position: relative;">
+                                    <input type="password" id="current_password" name="current_password" required class="form-control" style="width: 100%; padding: 10px; padding-right: 45px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePassword('current_password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px;">
+                                        👁️
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group mb-3">
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Password Baru</label>
-                                <input type="password" name="new_password" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                <div class="password-toggle" style="position: relative;">
+                                    <input type="password" id="new_password" name="new_password" required class="form-control" style="width: 100%; padding: 10px; padding-right: 45px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePassword('new_password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px;">
+                                        👁️
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="form-group mb-4">
                                 <label style="display: block; margin-bottom: 8px; font-weight: 500;">Konfirmasi Password Baru</label>
-                                <input type="password" name="confirm_password" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                <div class="password-toggle" style="position: relative;">
+                                    <input type="password" id="confirm_password" name="confirm_password" required class="form-control" style="width: 100%; padding: 10px; padding-right: 45px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <button type="button" class="password-toggle-btn" onclick="togglePassword('confirm_password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px;">
+                                        👁️
+                                    </button>
+                                </div>
                             </div>
 
                             <button type="submit" class="btn btn-outline">Update Password</button>
@@ -159,6 +185,21 @@ $user = $stmt->fetch();
             </div>
         </main>
     </div>
+
+    <script>
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleBtn = passwordInput.nextElementSibling;
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+    </script>
 </body>
 
 </html>

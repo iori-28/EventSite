@@ -182,6 +182,12 @@ try {
             $eventDatetime = "{$eventDate}, {$eventTime} - {$eventEndTime} WIB";
             $eventDetailUrl = APP_BASE_URL . "/index.php?page=event-detail&id={$eventId}&from=email";
 
+            // Build full image URL if event has image
+            $eventImageUrl = '';
+            if (!empty($event['event_image'])) {
+                $eventImageUrl = APP_BASE_URL . '/' . $event['event_image'];
+            }
+
             // Generate QR Code
             $qrCodeImage = '';
             if (!empty($participant['qr_token'])) {
@@ -198,6 +204,7 @@ try {
                     '{{event_location}}',
                     '{{event_description}}',
                     '{{event_detail_url}}',
+                    '{{event_image}}',
                     '{{qr_code_image}}'
                 ],
                 [
@@ -207,6 +214,7 @@ try {
                     htmlspecialchars($event['location'] ?? 'TBA'),
                     htmlspecialchars($event['description'] ?? 'Tidak ada deskripsi'),
                     htmlspecialchars($eventDetailUrl),
+                    htmlspecialchars($eventImageUrl),
                     $qrCodeImage
                 ],
                 $emailTemplate

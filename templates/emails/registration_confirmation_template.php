@@ -40,9 +40,17 @@
                             </p>
                             
                             <!-- Event Card -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
+                                <!-- Event Image (if exists) -->
+                                <?php if (!empty($event_image)): ?>
                                 <tr>
                                     <td>
+                                        <img src="{{event_image}}" alt="{{event_title}}" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
+                                    </td>
+                                </tr>
+                                <?php endif; ?>
+                                <tr>
+                                    <td style="padding: 25px;">
                                         <h3 style="margin: 0 0 15px 0; color: #c9384a; font-size: 20px; font-weight: 600;">
                                             📅 {{event_title}}
                                         </h3>

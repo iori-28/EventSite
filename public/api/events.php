@@ -289,6 +289,49 @@ if ($action === 'complete') {
     // DO NOT generate certificates yet - wait for admin approval
     // Certificates will be generated when admin approves completion
 
+    // Get event details
+    $eventStmt = $db->prepare("SELECT title FROM events WHERE id = ?");
+    $eventStmt->execute([$event_id]);
+    $event = $eventStmt->fetch();
+
+    // Get requester info
+    $requesterStmt = $db->prepare("SELECT name FROM users WHERE id = ?");
+    $requesterStmt->execute([$_SESSION['user']['id']]);
+    $requester = $requesterStmt->fetch();
+
+    // Send notification to all admins
+    $adminStmt = $db->query("SELECT id, email FROM users WHERE role = 'admin'");
+    $admins = $adminStmt->fetchAll();
+
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
+
+    foreach ($admins as $admin) {
+        $subject = "✅ Permintaan Penyelesaian Event: {$event['title']}";
+        $body = "<h3>Halo Admin,</h3>
+                 <p>Panitia <strong>{$requester['name']}</strong> telah mengajukan permintaan penyelesaian event.</p>
+                 <h4>Detail Event:</h4>
+                 <ul>
+                     <li><strong>Judul:</strong> {$event['title']}</li>
+                     <li><strong>Peserta Hadir:</strong> $attendedCount orang</li>
+                 </ul>
+                 <p><a href='http://localhost/EventSite/public/index.php?page=admin_event_completion' style='display:inline-block; padding:10px 20px; background:#c9384a; color:white; text-decoration:none; border-radius:5px;'>Review Penyelesaian</a></p>
+                 <p>Silakan review dan approve penyelesaian event ini untuk menerbitkan sertifikat.</p>";
+
+        NotificationController::createAndSend(
+            $admin['id'],
+            'event_completion_request',
+            [
+                'event_id' => $event_id,
+                'event_title' => $event['title'],
+                'requester_name' => $requester['name'],
+                'attended_count' => $attendedCount,
+                'email' => $admin['email']
+            ],
+            $subject,
+            $body
+        );
+    }
+
     echo "SUCCESS_WAITING_ADMIN_APPROVAL";
     exit;
 }

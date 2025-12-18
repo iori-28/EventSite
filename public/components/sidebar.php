@@ -32,11 +32,6 @@ if ($role === 'user') {
             'icon' => '🔔',
             'link' => 'index.php?page=user_notifications',
             'active' => 'user_notifications'
-        ],
-        'Profile' => [
-            'icon' => '👤',
-            'link' => 'index.php?page=user_profile',
-            'active' => 'user_profile'
         ]
     ];
 } elseif ($role === 'panitia') {
@@ -65,11 +60,6 @@ if ($role === 'user') {
             'icon' => '🔔',
             'link' => 'index.php?page=panitia_notifications',
             'active' => 'panitia_notifications'
-        ],
-        'Profile' => [
-            'icon' => '👤',
-            'link' => 'index.php?page=panitia_profile',
-            'active' => 'panitia_profile'
         ]
     ];
 } elseif ($role === 'admin') {
@@ -133,15 +123,17 @@ if ($role === 'user') {
     </div>
 
     <div class="sidebar-footer">
-        <div class="user-profile">
-            <div class="user-avatar">
-                <?= strtoupper(substr($_SESSION['user']['name'], 0, 1)) ?>
+        <a href="index.php?page=<?= $role ?>_profile" style="text-decoration: none; color: inherit; display: block;">
+            <div class="user-profile" style="cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'" onmouseout="this.style.backgroundColor='transparent'">
+                <div class="user-avatar">
+                    <?= strtoupper(substr($_SESSION['user']['name'], 0, 1)) ?>
+                </div>
+                <div class="user-info">
+                    <h4><?= htmlspecialchars($_SESSION['user']['name']) ?></h4>
+                    <p><?= ucfirst($_SESSION['user']['role']) ?></p>
+                </div>
             </div>
-            <div class="user-info">
-                <h4><?= htmlspecialchars($_SESSION['user']['name']) ?></h4>
-                <p><?= ucfirst($_SESSION['user']['role']) ?></p>
-            </div>
-        </div>
+        </a>
     </div>
 </aside>
 

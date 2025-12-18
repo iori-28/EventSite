@@ -73,6 +73,7 @@ $allowed_pages = [
     'panitia_profile',
     'panitia_edit_event',
     'admin_dashboard',
+    'admin_profile',
     'admin_analytics',
     'admin_manage_events',
     'admin_event_completion',

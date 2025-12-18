@@ -35,6 +35,12 @@ if ($action === 'register') {
         // Load email template
         $template = file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/EventSite/templates/emails/registration_confirmation_template.php');
 
+        // Build full image URL if event has image
+        $event_image_url = '';
+        if (!empty($event['event_image'])) {
+            $event_image_url = 'http://localhost/EventSite/public/' . $event['event_image'];
+        }
+
         // Replace placeholders
         $template = str_replace('{{participant_name}}', $_SESSION['user']['name'], $template);
         $template = str_replace('{{event_title}}', $event['title'], $template);
@@ -42,6 +48,7 @@ if ($action === 'register') {
         $template = str_replace('{{event_datetime}}', date('l, d F Y - H:i', strtotime($event['start_at'])) . ' WIB', $template);
         $template = str_replace('{{event_description}}', $event['description'], $template);
         $template = str_replace('{{event_detail_url}}', 'http://localhost/EventSite/public/index.php?page=event-detail&id=' . $event_id, $template);
+        $template = str_replace('{{event_image}}', $event_image_url, $template);
 
         $payload = [
             'event_id' => $event_id,

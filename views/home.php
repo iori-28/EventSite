@@ -9,7 +9,7 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
 $db = Database::connect();
 
 $featuredEvents = $db->query("
-    SELECT e.*, u.name as creator_name 
+    SELECT e.*, u.name as creator_name, e.event_image
     FROM events e 
     LEFT JOIN users u ON e.created_by = u.id 
     WHERE e.status = 'approved' 
@@ -87,29 +87,35 @@ $stats = [
             <?php if (count($featuredEvents) > 0): ?>
                 <div class="grid grid-3">
                     <?php foreach ($featuredEvents as $event): ?>
-                        <div class="card">
-                            <div class="card-img" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold;">
-                                📅
-                            </div>
-                            <div class="card-body">
-                                <h3 class="card-title"><?= htmlspecialchars($event['title']) ?></h3>
-                                <p class="card-text"><?= htmlspecialchars(substr($event['description'], 0, 100)) ?>...</p>
-
-                                <div class="card-meta">
-                                    <div class="card-meta-item">
-                                        📍 <?= htmlspecialchars($event['location']) ?>
+                        <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=home" style="text-decoration: none; color: inherit; display: block;">
+                            <div class="card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow=''">
+                                <?php if (!empty($event['event_image'])): ?>
+                                    <div class="card-img" style="background: url('<?= htmlspecialchars($event['event_image']) ?>') center/cover; height: 200px;"></div>
+                                <?php else: ?>
+                                    <div class="card-img" style="background: linear-gradient(135deg, #c9384a 0%, #8b1e2e 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; font-weight: bold; height: 200px;">
+                                        📅
                                     </div>
-                                    <div class="card-meta-item">
-                                        🕒 <?= date('d M Y', strtotime($event['start_at'])) ?>
+                                <?php endif; ?>
+                                <div class="card-body">
+                                    <h3 class="card-title"><?= htmlspecialchars($event['title']) ?></h3>
+                                    <p class="card-text"><?= htmlspecialchars(substr($event['description'], 0, 100)) ?>...</p>
+
+                                    <div class="card-meta">
+                                        <div class="card-meta-item">
+                                            📍 <?= htmlspecialchars($event['location']) ?>
+                                        </div>
+                                        <div class="card-meta-item">
+                                            🕒 <?= date('d M Y', strtotime($event['start_at'])) ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-between align-center">
+                                        <span class="badge badge-success">Available</span>
+                                        <span class="btn btn-primary btn-sm">Lihat Detail</span>
                                     </div>
                                 </div>
-
-                                <div class="d-flex justify-between align-center">
-                                    <span class="badge badge-success">Available</span>
-                                    <a href="index.php?page=event-detail&id=<?= $event['id'] ?>&from=events" class="btn btn-primary btn-sm">Lihat Detail</a>
-                                </div>
                             </div>
-                        </div>
+                        </a>
                     <?php endforeach; ?>
                 </div>
 

@@ -38,16 +38,17 @@ class Event
     {
         $db = Database::connect();
 
-        // Insert event baru dengan semua field yang diperlukan
+        // Insert event baru dengan semua field yang diperlukan (including image)
         $stmt = $db->prepare("
             INSERT INTO events 
-            (title, description, category, location, start_at, end_at, capacity, status, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (title, description, event_image, category, location, start_at, end_at, capacity, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
-        return $stmt->execute([
+        $result = $stmt->execute([
             $data['title'],
             $data['description'],
+            $data['event_image'] ?? null,  // NULL jika tidak ada upload
             $data['category'] ?? 'Lainnya',  // Default category jika tidak ada
             $data['location'],
             $data['start_at'],
@@ -56,6 +57,53 @@ class Event
             $data['status'],
             $data['created_by']
         ]);
+
+        // Jika berhasil create dan status pending, kirim notifikasi ke semua admin
+        if ($result && $data['status'] === 'pending') {
+            $event_id = $db->lastInsertId();
+
+            // Get creator info
+            $creatorStmt = $db->prepare("SELECT name, email FROM users WHERE id = ?");
+            $creatorStmt->execute([$data['created_by']]);
+            $creator = $creatorStmt->fetch();
+
+            // Get all admin users
+            $adminStmt = $db->query("SELECT id, email FROM users WHERE role = 'admin'");
+            $admins = $adminStmt->fetchAll();
+
+            // Send notification to each admin
+            foreach ($admins as $admin) {
+                require_once __DIR__ . '/../controllers/NotificationController.php';
+
+                $subject = "⏳ Event Baru Menunggu Persetujuan: {$data['title']}";
+                $body = "<h3>Halo Admin,</h3>
+                         <p>Event baru telah diajukan oleh <strong>{$creator['name']}</strong> dan membutuhkan persetujuan Anda.</p>
+                         <h4>Detail Event:</h4>
+                         <ul>
+                             <li><strong>Judul:</strong> {$data['title']}</li>
+                             <li><strong>Lokasi:</strong> {$data['location']}</li>
+                             <li><strong>Tanggal:</strong> " . date('d M Y', strtotime($data['start_at'])) . "</li>
+                             <li><strong>Kapasitas:</strong> {$data['capacity']} peserta</li>
+                         </ul>
+                         <p><a href='http://localhost/EventSite/public/index.php?page=adm_apprv_event' style='display:inline-block; padding:10px 20px; background:#c9384a; color:white; text-decoration:none; border-radius:5px;'>Review Event</a></p>
+                         <p>Silakan review dan approve/reject event ini.</p>";
+
+                NotificationController::createAndSend(
+                    $admin['id'],
+                    'event_submitted',
+                    [
+                        'event_id' => $event_id,
+                        'event_title' => $data['title'],
+                        'creator_name' => $creator['name'],
+                        'email' => $admin['email']
+                    ],
+                    $subject,
+                    $body
+                );
+            }
+        }
+
+        return $result;
     }
 
     /**
