@@ -452,6 +452,8 @@ Dipanggil oleh `config/env.php`.
 
 * Exclude vendor/, .env, certificates/, node_modules/
 * Exclude sensitive files dan generated content
+* Exclude user uploads (public/uploads/*) but preserve folder structure with .gitkeep files
+* Preserve empty folders for fresh installations
 🎯 Fitur Utama
 
 ## **1. Multi-Role System**

@@ -91,7 +91,9 @@ foreach ($all_events as $event) {
                                         <button onclick="showQRCode('<?= $event['qr_token'] ?>', '<?= htmlspecialchars($event['title']) ?>')" class="btn btn-secondary btn-sm" style="flex: 1;">
                                             📱 QR Code
                                         </button>
-                                        <button onclick="cancelRegistration(<?= $event['id'] ?>)" class="btn btn-outline btn-sm" style="flex: 1; border-color: var(--danger-color); color: var(--danger-color);">Batalkan</button>
+                                        <?php if ($event['registration_status'] !== 'checked_in' && !in_array($event['status'], ['completed', 'waiting_completion'])): ?>
+                                            <button onclick="cancelRegistration(<?= $event['id'] ?>)" class="btn btn-outline btn-sm" style="flex: 1; border-color: var(--danger-color); color: var(--danger-color);">Batalkan</button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

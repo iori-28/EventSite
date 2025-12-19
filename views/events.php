@@ -7,6 +7,7 @@ $db = Database::connect();
 // Get filter parameters
 $search = $_GET['search'] ?? '';
 $location = $_GET['location'] ?? '';
+$category = $_GET['category'] ?? '';
 $date_filter = $_GET['date'] ?? '';
 $organizer_filter = $_GET['organizer'] ?? '';
 
@@ -38,6 +39,12 @@ if (!empty($location)) {
 if (!empty($organizer_filter)) {
     $query .= " AND e.created_by = :organizer";
     $params['organizer'] = $organizer_filter;
+}
+
+// Add category filter
+if (!empty($category)) {
+    $query .= " AND e.category = :category";
+    $params['category'] = $category;
 }
 
 // Add date filter
@@ -76,6 +83,14 @@ $locations = $db->query("
     ORDER BY location
 ")->fetchAll(PDO::FETCH_COLUMN);
 
+// Get categories for filter
+$categories = $db->query("
+    SELECT DISTINCT category 
+    FROM events 
+    WHERE status = 'approved' AND category IS NOT NULL
+    ORDER BY category
+")->fetchAll(PDO::FETCH_COLUMN);
+
 // Get organizers (panitia users) for filter
 $organizers = $db->query("
     SELECT DISTINCT u.id, u.name 
@@ -104,7 +119,7 @@ $organizers = $db->query("
 
         .filter-form {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
             gap: 15px;
             align-items: end;
         }
@@ -255,6 +270,18 @@ $organizers = $db->query("
                             <?php foreach ($locations as $loc): ?>
                                 <option value="<?= htmlspecialchars($loc) ?>" <?= $location === $loc ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($loc) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Kategori</label>
+                        <select id="category" name="category">
+                            <option value="">Semua Kategori</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat) ?>" <?= $category === $cat ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cat) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

@@ -21,14 +21,38 @@ if ($from_source === 'email' && !isset($_SESSION['user'])) {
 }
 
 // Get event details
+// Allow admin to view pending events, allow creator/admin to view completed events
+$is_admin = isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin';
+$user_id = isset($_SESSION['user']) ? $_SESSION['user']['id'] : null;
+
+// Build status condition:
+// - Admin can see: approved, pending, completed, waiting_completion
+// - Creator can see: their own events regardless of status
+// - Participant can see: events they registered for (including completed)
+// - Others can only see: approved
+if ($is_admin) {
+    $status_condition = "(e.status IN ('approved', 'pending', 'completed', 'waiting_completion'))";
+} elseif ($user_id) {
+    // Allow creator OR participant to view any status
+    $status_condition = "(e.status = 'approved' OR e.created_by = :user_id OR EXISTS (SELECT 1 FROM participants p WHERE p.event_id = e.id AND p.user_id = :user_id2))";
+} else {
+    $status_condition = "e.status = 'approved'";
+}
+
 $stmt = $db->prepare("
     SELECT e.*, u.name as creator_name, u.email as creator_email,
     (SELECT COUNT(*) FROM participants WHERE event_id = e.id) as participant_count
     FROM events e 
     LEFT JOIN users u ON e.created_by = u.id 
-    WHERE e.id = :id AND e.status = 'approved'
+    WHERE e.id = :id AND $status_condition
 ");
-$stmt->execute([':id' => $event_id]);
+
+$params = [':id' => $event_id];
+if (!$is_admin && $user_id) {
+    $params[':user_id'] = $user_id;
+    $params[':user_id2'] = $user_id;
+}
+$stmt->execute($params);
 $event = $stmt->fetch();
 
 if (!$event) {
@@ -61,6 +85,9 @@ $back_text = '← Kembali ke Daftar Event';
 if ($from === 'admin_manage_events') {
     $back_url = 'index.php?page=admin_manage_events';
     $back_text = '← Kembali ke Kelola Event';
+} elseif ($from === 'panitia_dashboard') {
+    $back_url = 'index.php?page=panitia_dashboard';
+    $back_text = '← Kembali ke Dashboard';
 } elseif ($from === 'panitia_my_events') {
     $back_url = 'index.php?page=panitia_my_events';
     $back_text = '← Kembali ke Event Saya';
@@ -247,6 +274,29 @@ if ($from === 'admin_manage_events') {
                         <?= htmlspecialchars($event['description']) ?>
                     </p>
 
+                    <?php if ($is_admin && $event['status'] === 'pending'): ?>
+                        <div class="alert alert-warning" style="margin-top: 30px; padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px;">
+                            <h4 style="margin-bottom: 15px; font-size: 18px;">⏳ Event Menunggu Persetujuan</h4>
+                            <p style="margin-bottom: 20px;">Event ini dibuat oleh <strong><?= htmlspecialchars($event['creator_name']) ?></strong> dan menunggu persetujuan Anda.</p>
+                            <div style="display: flex; gap: 10px;">
+                                <form method="POST" action="api/event_approval.php" style="flex: 1;">
+                                    <input type="hidden" name="action" value="approve">
+                                    <input type="hidden" name="id" value="<?= $event['id'] ?>">
+                                    <button type="submit" class="btn btn-primary" style="width: 100%; background: #28a745; border-color: #28a745; padding: 12px;">
+                                        ✅ Setujui Event
+                                    </button>
+                                </form>
+                                <form method="POST" action="api/event_approval.php" style="flex: 1;">
+                                    <input type="hidden" name="action" value="reject">
+                                    <input type="hidden" name="id" value="<?= $event['id'] ?>">
+                                    <button type="submit" class="btn btn-outline" style="width: 100%; border-color: #dc3545; color: #dc3545; padding: 12px;">
+                                        ❌ Tolak Event
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid var(--border-color);">
                         <h3 style="margin-bottom: 20px;">Detail Event</h3>
                         <div class="grid grid-2" style="gap: 20px;">
@@ -342,7 +392,7 @@ if ($from === 'admin_manage_events') {
                                 </button>
                             </form>
                         <?php elseif (!isset($_SESSION['user'])): ?>
-                            <a href="index.php?page=login&redirect=event-detail&id=<?= $event['id'] ?>" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px; text-align: center; display: block; text-decoration: none; margin-top: 20px;">
+                            <a href="index.php?page=login&redirect=<?= urlencode('index.php?page=event-detail&id=' . $event['id']) ?>" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px; text-align: center; display: block; text-decoration: none; margin-top: 20px;">
                                 Login untuk Daftar
                             </a>
                         <?php elseif ($is_full): ?>

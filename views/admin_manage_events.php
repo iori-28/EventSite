@@ -21,8 +21,9 @@ if ($status !== 'all') {
 }
 
 if ($search) {
-    $sql .= " AND (e.title LIKE :search OR u.name LIKE :search)";
-    $params[':search'] = "%$search%";
+    $sql .= " AND (e.title LIKE :search_title OR u.name LIKE :search_name)";
+    $params[':search_title'] = "%$search%";
+    $params[':search_name'] = "%$search%";
 }
 
 $sql .= " ORDER BY e.created_at DESC";
@@ -59,7 +60,7 @@ $events = $stmt->fetchAll();
             <div class="card mb-4" style="padding: 20px;">
                 <form method="GET" class="d-flex align-center gap-2" style="flex-wrap: wrap;">
                     <input type="hidden" name="page" value="admin_manage_events">
-                    <select name="status" class="form-control" style="width: auto; min-width: 150px;">
+                    <select name="status" class="form-control" style="width: auto; min-width: 150px;" autocomplete="off">
                         <option value="all" <?= $status === 'all' ? 'selected' : '' ?>>Semua Status</option>
                         <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Menunggu Review</option>
                         <option value="approved" <?= $status === 'approved' ? 'selected' : '' ?>>Disetujui</option>
@@ -173,6 +174,16 @@ $events = $stmt->fetchAll();
     </div>
 
     <script>
+        // Force dropdown value based on URL parameter (prevent browser autocomplete override)
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusSelect = document.querySelector('select[name="status"]');
+            if (statusSelect) {
+                const statusParam = urlParams.get('status') || 'all';
+                statusSelect.value = statusParam;
+            }
+        });
+
         // Bulk Actions Functions
         function toggleSelectAll(checkbox) {
             const checkboxes = document.querySelectorAll('.event-checkbox');

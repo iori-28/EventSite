@@ -24,7 +24,7 @@ if ($event_id) {
 
 // Get participants
 $query = "
-    SELECT p.*, u.name as user_name, u.email as user_email, e.title as event_title, e.id as event_id
+    SELECT p.*, u.name as user_name, u.email as user_email, e.title as event_title, e.id as event_id, e.status as event_status
     FROM participants p 
     JOIN users u ON p.user_id = u.id 
     JOIN events e ON p.event_id = e.id 
@@ -161,6 +161,8 @@ $all_my_events = $my_events->fetchAll();
                                             <button onclick="markAttendance(<?= $p['id'] ?>)" class="btn btn-sm btn-success" id="btn-<?= $p['id'] ?>">
                                                 ✓ Hadir
                                             </button>
+                                        <?php elseif ($p['event_status'] === 'completed'): ?>
+                                            <span class="badge badge-success">✓ Hadir</span>
                                         <?php else: ?>
                                             <button onclick="unmarkAttendance(<?= $p['id'] ?>)" class="btn btn-sm btn-outline" style="font-size: 11px;">
                                                 ✗ Batal Hadir

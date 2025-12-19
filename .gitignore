@@ -25,6 +25,13 @@ cron_*.log
 /public/certificates/*.html
 /public/certificates/*.pdf
 
+# User Uploads (Dynamic Content)
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/events/
+/public/uploads/events/*
+!/public/uploads/events/.gitkeep
+
 # IDE
 /.vscode/
 /.idea/

@@ -64,6 +64,10 @@ EventSite/
 │   ├── css/
 │   ├── api/                     (API endpoints)
 │   ├── certificates/            (Generated certificates)
+│   ├── uploads/                 (User uploads - gitignored)
+│   │   ├── .gitkeep            (Preserves folder structure)
+│   │   └── events/              (Event photos)
+│   │       └── .gitkeep        (Preserves folder structure)
 │   └── components/
 │
 ├── cron/                          ← ⏰ Scheduled Tasks
@@ -77,6 +81,8 @@ EventSite/
 │
 ├── .env                           ← 🔐 Environment Config (gitignored)
 ├── .gitignore                     ← 🚫 Git Ignore Rules
+│                                    • Excludes uploads/* but preserves .gitkeep
+│                                    • Preserves folder structure for fresh clones
 ├── composer.json                  ← 📋 PHP Dependencies
 └── README                         ← 📖 Original Documentation
 ```
@@ -141,6 +147,9 @@ Publicly accessible files:
 - Static assets (CSS, JS)
 - API endpoints
 - Generated files
+- User uploads (event photos)
+  - **uploads/**: Gitignored dynamic content
+  - **.gitkeep**: Preserves folder structure in git
 
 ### `cron/`
 Scheduled background tasks:
