@@ -43,6 +43,7 @@ if (isset($_GET['updated'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
     $description = $_POST['description'] ?? '';
+    $category = $_POST['category'] ?? 'Lainnya';
     $location = $_POST['location'] ?? '';
     $start_at = $_POST['start_at'] ?? '';
     $end_at = $_POST['end_at'] ?? '';
@@ -111,11 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update event
             $stmt = $db->prepare("
                 UPDATE events 
-                SET title = ?, description = ?, location = ?, start_at = ?, end_at = ?, capacity = ?, status = ?, event_image = ?, updated_at = NOW()
+                SET title = ?, description = ?, category = ?, location = ?, start_at = ?, end_at = ?, capacity = ?, status = ?, event_image = ?, updated_at = NOW()
                 WHERE id = ?
             ");
 
-            if ($stmt->execute([$title, $description, $location, $start_at, $end_at, $capacity, $status, $uploaded_image, $event_id])) {
+            if ($stmt->execute([$title, $description, $category, $location, $start_at, $end_at, $capacity, $status, $uploaded_image, $event_id])) {
                 // PRG Pattern: Redirect after successful POST to prevent duplicate submission on refresh
                 header('Location: index.php?page=admin_edit_event&id=' . $event_id . '&updated=1');
                 exit;
@@ -182,6 +183,24 @@ $participant_count = $stmt->fetchColumn();
                         <div class="form-group">
                             <label>Judul Event *</label>
                             <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($event['title']) ?>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kategori Event *</label>
+                            <select name="category" class="form-control" required>
+                                <option value="Seminar" <?= ($event['category'] ?? '') == 'Seminar' ? 'selected' : '' ?>>📚 Seminar</option>
+                                <option value="Workshop" <?= ($event['category'] ?? '') == 'Workshop' ? 'selected' : '' ?>>🛠️ Workshop</option>
+                                <option value="Webinar" <?= ($event['category'] ?? '') == 'Webinar' ? 'selected' : '' ?>>💻 Webinar</option>
+                                <option value="Kompetisi" <?= ($event['category'] ?? '') == 'Kompetisi' ? 'selected' : '' ?>>🏆 Kompetisi</option>
+                                <option value="Pelatihan" <?= ($event['category'] ?? '') == 'Pelatihan' ? 'selected' : '' ?>>📖 Pelatihan</option>
+                                <option value="Sosialisasi" <?= ($event['category'] ?? '') == 'Sosialisasi' ? 'selected' : '' ?>>📢 Sosialisasi</option>
+                                <option value="Expo" <?= ($event['category'] ?? '') == 'Expo' ? 'selected' : '' ?>>🎪 Expo</option>
+                                <option value="Musik" <?= ($event['category'] ?? '') == 'Musik' ? 'selected' : '' ?>>🎵 Musik</option>
+                                <option value="Olahraga" <?= ($event['category'] ?? '') == 'Olahraga' ? 'selected' : '' ?>>🏃 Olahraga</option>
+                                <option value="Festival" <?= ($event['category'] ?? '') == 'Festival' ? 'selected' : '' ?>>🎭 Festival</option>
+                                <option value="Bakti Sosial" <?= ($event['category'] ?? '') == 'Bakti Sosial' ? 'selected' : '' ?>>🤝 Bakti Sosial</option>
+                                <option value="Lainnya" <?= ($event['category'] ?? 'Lainnya') == 'Lainnya' ? 'selected' : '' ?>>📋 Lainnya</option>
+                            </select>
                         </div>
 
                         <div class="form-group">

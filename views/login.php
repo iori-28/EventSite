@@ -3,6 +3,7 @@
 
 // Get redirect parameter
 $redirect = $_GET['redirect'] ?? '';
+$register_success = isset($_GET['success']) && $_GET['success'] === 'registered';
 
 // Redirect jika sudah login
 if (isset($_SESSION['user'])) {
@@ -96,6 +97,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
         <?php endif; ?>
 
+        <?php if ($register_success): ?>
+            <div class="alert alert-success">
+                ✅ Registrasi berhasil! Silakan login.
+            </div>
+        <?php endif; ?>
         <?php if ($success): ?>
             <div class="alert alert-success">
                 <?= htmlspecialchars($success) ?>

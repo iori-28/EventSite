@@ -51,7 +51,7 @@ if ($role === 'user') {
             'link' => 'index.php?page=panitia_my_events',
             'active' => 'panitia_my_events'
         ],
-        'Pengguna' => [
+        'Daftar Peserta' => [
             'icon' => '👥',
             'link' => 'index.php?page=panitia_participants',
             'active' => 'panitia_participants'
@@ -68,6 +68,11 @@ if ($role === 'user') {
             'icon' => '⚡',
             'link' => 'index.php?page=admin_dashboard',
             'active' => 'admin_dashboard'
+        ],
+        'Persetujuan Event' => [
+            'icon' => '⏳',
+            'link' => 'index.php?page=adm_apprv_event',
+            'active' => 'adm_apprv_event'
         ],
         'Analytics' => [
             'icon' => '📊',

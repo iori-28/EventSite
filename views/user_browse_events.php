@@ -14,6 +14,7 @@ $search = $_GET['search'] ?? '';
 $location = $_GET['location'] ?? '';
 $category = $_GET['category'] ?? '';
 $organizer_filter = $_GET['organizer'] ?? '';
+$date_filter = $_GET['date'] ?? '';
 
 // Build query
 $query = "
@@ -46,6 +47,15 @@ if ($category) {
 if ($organizer_filter) {
     $query .= " AND e.created_by = :organizer";
     $params[':organizer'] = $organizer_filter;
+}
+
+// Add date filter
+if ($date_filter === 'upcoming') {
+    $query .= " AND e.start_at > NOW()";
+} elseif ($date_filter === 'today') {
+    $query .= " AND DATE(e.start_at) = CURDATE()";
+} elseif ($date_filter === 'this_week') {
+    $query .= " AND YEARWEEK(e.start_at) = YEARWEEK(NOW())";
 }
 
 $query .= " ORDER BY e.start_at ASC";
@@ -109,7 +119,7 @@ $organizers = $db->query("
 
             <!-- Filter Section -->
             <div class="card mb-4" style="padding: 20px;">
-                <form method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                <form method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
                     <input type="hidden" name="page" value="user_browse_events">
                     <div style="display: flex; flex-direction: column;">
                         <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Cari Event</label>
@@ -151,6 +161,15 @@ $organizers = $db->query("
                                     <?= htmlspecialchars($org['name']) ?>
                                 </option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;">Waktu</label>
+                        <select name="date" style="padding: 10px 14px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 14px;">
+                            <option value="">Semua Waktu</option>
+                            <option value="today" <?= $date_filter === 'today' ? 'selected' : '' ?>>Hari Ini</option>
+                            <option value="this_week" <?= $date_filter === 'this_week' ? 'selected' : '' ?>>Minggu Ini</option>
+                            <option value="upcoming" <?= $date_filter === 'upcoming' ? 'selected' : '' ?>>Akan Datang</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary" style="height: 42px;">Filter</button>

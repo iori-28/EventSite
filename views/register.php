@@ -1,5 +1,7 @@
 <?php
 
+// Get redirect parameter
+$redirect = $_GET['redirect'] ?? '';
 
 // Redirect jika sudah login
 if (isset($_SESSION['user'])) {
@@ -37,9 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $result = AuthController::register($name, $email, $password);
 
         if ($result === 'REGISTER_SUCCESS') {
-            $success = 'Registrasi berhasil! Silakan login.';
-            // Clear form
-            $_POST = array();
+            // Redirect to login with redirect parameter preserved
+            $login_url = 'index.php?page=login&success=registered';
+            if ($redirect) {
+                $login_url .= '&redirect=' . urlencode($redirect);
+            }
+            header('Location: ' . $login_url);
+            exit;
         } else {
             $error = 'Email sudah terdaftar atau terjadi kesalahan!';
         }
@@ -78,6 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         <form method="POST" action="">
             <input type="hidden" name="action" value="register">
+            <?php if ($redirect): ?>
+                <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect) ?>">
+            <?php endif; ?>
 
             <div class="form-group">
                 <label for="name">Nama Lengkap</label>
@@ -151,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </a>
 
         <div class="auth-footer">
-            <p>Sudah punya akun? <a href="index.php?page=login">Masuk sekarang</a></p>
+            <p>Sudah punya akun? <a href="index.php?page=login<?= $redirect ? '&redirect=' . urlencode($redirect) : '' ?>">Masuk sekarang</a></p>
         </div>
     </div>
 

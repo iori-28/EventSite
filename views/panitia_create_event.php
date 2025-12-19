@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'title' => $_POST['title'] ?? '',
             'description' => $_POST['description'] ?? '',
             'event_image' => $uploaded_image,
+            'category' => $_POST['category'] ?? 'Lainnya',
             'location' => $_POST['location'] ?? '',
             'start_at' => $_POST['start_at'] ?? '',
             'end_at' => $_POST['end_at'] ?? '',
@@ -132,6 +133,24 @@ if (isset($_SESSION['flash_error'])) {
                                 <div class="form-group mb-3">
                                     <label style="display: block; margin-bottom: 8px; font-weight: 500;">Judul Event <span style="color:red">*</span></label>
                                     <input type="text" name="title" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" placeholder="Contoh: Seminar Teknologi Masa Depan">
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Kategori Event <span style="color:red">*</span></label>
+                                    <select name="category" required class="form-control" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                                        <option value="Seminar">📚 Seminar</option>
+                                        <option value="Workshop">🛠️ Workshop</option>
+                                        <option value="Webinar">💻 Webinar</option>
+                                        <option value="Kompetisi">🏆 Kompetisi</option>
+                                        <option value="Pelatihan">📖 Pelatihan</option>
+                                        <option value="Sosialisasi">📢 Sosialisasi</option>
+                                        <option value="Expo">🎪 Expo</option>
+                                        <option value="Musik">🎵 Musik</option>
+                                        <option value="Olahraga">🏃 Olahraga</option>
+                                        <option value="Festival">🎭 Festival</option>
+                                        <option value="Bakti Sosial">🤝 Bakti Sosial</option>
+                                        <option value="Lainnya" selected>📋 Lainnya</option>
+                                    </select>
                                 </div>
 
                                 <div class="form-group mb-3">

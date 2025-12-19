@@ -61,8 +61,9 @@ if ($role !== 'all') {
 }
 
 if ($search) {
-    $sql .= " AND (name LIKE :search OR email LIKE :search)";
-    $params[':search'] = "%$search%";
+    $sql .= " AND (name LIKE :search_name OR email LIKE :search_email)";
+    $params[':search_name'] = "%$search%";
+    $params[':search_email'] = "%$search%";
 }
 
 $sql .= " ORDER BY created_at DESC";
@@ -99,7 +100,7 @@ $users = $stmt->fetchAll();
             <div class="card mb-4" style="padding: 20px;">
                 <form method="GET" class="d-flex align-center gap-2" style="flex-wrap: wrap;">
                     <input type="hidden" name="page" value="admin_manage_users">
-                    <select name="role" class="form-control" style="width: auto; min-width: 150px;">
+                    <select name="role" class="form-control" style="width: auto; min-width: 150px;" autocomplete="off">
                         <option value="all" <?= $role === 'all' ? 'selected' : '' ?>>Semua Role</option>
                         <option value="user" <?= $role === 'user' ? 'selected' : '' ?>>User</option>
                         <option value="panitia" <?= $role === 'panitia' ? 'selected' : '' ?>>Panitia</option>
@@ -180,6 +181,16 @@ $users = $stmt->fetchAll();
     </div>
 
     <script>
+        // Force dropdown value based on URL parameter (prevent browser autocomplete override)
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleSelect = document.querySelector('select[name="role"]');
+            if (roleSelect) {
+                const roleParam = urlParams.get('role') || 'all';
+                roleSelect.value = roleParam;
+            }
+        });
+
         function deleteUser(id) {
             if (!confirm('Apakah Anda yakin ingin menghapus user ini? Aksi ini tidak dapat dibatalkan.')) return;
 
