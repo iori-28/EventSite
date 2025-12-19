@@ -28,11 +28,8 @@ try {
 
     // Get event details
     $query = "
-        SELECT 
-            e.*,
-            o.name as organization_name
+        SELECT e.*
         FROM events e
-        LEFT JOIN organizations o ON e.organization_id = o.id
         WHERE e.id = :event_id
         AND e.status = 'approved'
     ";
