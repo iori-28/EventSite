@@ -52,6 +52,8 @@ if ($action === 'register') {
         // Send registration confirmation notification
         require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/NotificationController.php';
         require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/models/Event.php';
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/GoogleCalendarController.php';
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/services/CalendarService.php';
 
         $event = Event::getById($event_id);
 
@@ -84,7 +86,32 @@ if ($action === 'register') {
 
         NotificationController::createAndSend($user_id, 'registration', $payload, $subject, $template);
 
-        die("REGISTER_SUCCESS");
+        // Check if user has auto-add enabled
+        $auto_added = false;
+        if (GoogleCalendarController::isAutoAddEnabled($user_id)) {
+            // Try to auto-add to Google Calendar
+            $calendar_result = CalendarService::autoAddToGoogleCalendar($user_id, $event);
+            $auto_added = $calendar_result['success'];
+        }
+
+        // Get calendar connection info for modal
+        $calendar_info = GoogleCalendarController::getConnectionInfo($user_id);
+
+        // Return JSON response dengan event data untuk modal
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'REGISTER_SUCCESS',
+            'auto_added' => $auto_added,
+            'event' => [
+                'id' => $event_id,
+                'title' => $event['title']
+            ],
+            'calendar' => [
+                'connected' => $calendar_info['connected'],
+                'auto_add_enabled' => $calendar_info['auto_add']
+            ]
+        ]);
+        exit;
     } else {
         die("REGISTER_FAILED");
     }

@@ -2,6 +2,7 @@
     "require": {
         "phpmailer/phpmailer": "^7.0.0",
         "chillerlan/php-qrcode": "^5.0",
-        "google/auth": "^1.49"
+        "google/auth": "^1.49",
+        "google/apiclient": "^2.18"
     }
 }

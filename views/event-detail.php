@@ -433,6 +433,9 @@ if ($from === 'admin_manage_events') {
 
     <?php include 'components/footer.php'; ?>
 
+    <!-- Include Post-Registration Modal -->
+    <?php include 'components/post_registration_modal.php'; ?>
+
     <script>
         function registerEvent(e) {
             e.preventDefault();
@@ -450,27 +453,58 @@ if ($from === 'admin_manage_events') {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.text())
-                .then(data => {
-                    const status = data.trim();
-                    console.log(status);
-
-                    if (status === 'REGISTER_SUCCESS') {
-                        // Redirect immediately without alert
-                        location.reload();
-                    } else if (status === 'ALREADY_REGISTERED') {
-                        showToast('Anda sudah terdaftar di event ini.', 'warning');
-                    } else if (status === 'EVENT_FULL') {
-                        showToast('Maaf, kuota event sudah penuh.', 'error');
-                    } else if (status === 'EVENT_NOT_APPROVED') {
-                        showToast('Event ini belum disetujui.', 'error');
-                    } else if (status === 'NO_SESSION') {
-                        showToast('Sesi habis. Silakan login kembali.', 'error');
-                        setTimeout(() => {
-                            window.location.href = 'index.php?page=login';
-                        }, 1500);
+                .then(response => {
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
                     } else {
-                        showToast('Gagal mendaftar. Terjadi kesalahan sistem.', 'error');
+                        return response.text();
+                    }
+                })
+                .then(data => {
+                    // Handle JSON response (new format with modal)
+                    if (typeof data === 'object' && data.status) {
+                        if (data.status === 'REGISTER_SUCCESS') {
+                            showToast('✅ Pendaftaran berhasil!', 'success');
+
+                            // Show modal if calendar not auto-added
+                            if (!data.auto_added) {
+                                setTimeout(() => {
+                                    showPostRegistrationModal({
+                                        event_id: data.event.id,
+                                        event_title: data.event.title,
+                                        calendar_connected: data.calendar.connected,
+                                        auto_add_enabled: data.calendar.auto_add_enabled
+                                    });
+                                }, 500);
+                            } else {
+                                // Auto-added successfully
+                                showToast('📅 Event otomatis ditambahkan ke Google Calendar!', 'success');
+                                setTimeout(() => location.reload(), 1500);
+                            }
+                        }
+                    }
+                    // Handle old text response format (backward compatibility)
+                    else {
+                        const status = typeof data === 'string' ? data.trim() : '';
+
+                        if (status === 'REGISTER_SUCCESS') {
+                            location.reload();
+                        } else if (status === 'ALREADY_REGISTERED') {
+                            showToast('Anda sudah terdaftar di event ini.', 'warning');
+                        } else if (status === 'EVENT_FULL') {
+                            showToast('Maaf, kuota event sudah penuh.', 'error');
+                        } else if (status === 'EVENT_NOT_APPROVED') {
+                            showToast('Event ini belum disetujui.', 'error');
+                        } else if (status === 'NO_SESSION') {
+                            showToast('Sesi habis. Silakan login kembali.', 'error');
+                            setTimeout(() => {
+                                window.location.href = 'index.php?page=login';
+                            }, 1500);
+                        } else {
+                            showToast('Gagal mendaftar. Terjadi kesalahan sistem.', 'error');
+                        }
                     }
                 })
                 .catch(err => {

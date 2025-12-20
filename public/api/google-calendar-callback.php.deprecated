@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * Google Calendar OAuth Callback Handler
+ * 
+ * Handle redirect dari Google setelah user authorize.
+ * Exchange authorization code untuk access token & refresh token,
+ * lalu simpan ke database.
+ * 
+ * Flow:
+ * 1. User authorize -> Google redirect ke sini dengan code
+ * 2. Exchange code untuk tokens
+ * 3. Save tokens ke database
+ * 4. Redirect ke dashboard atau auto-add event (jika dari post-registration)
+ */
+
+session_start();
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/GoogleCalendarController.php';
+
+if (!isset($_SESSION['user'])) {
+    header('Location: ../index.php?page=login&error=session_expired');
+    exit;
+}
+
+// Check if authorization code is present
+if (!isset($_GET['code'])) {
+    header('Location: ../index.php?page=user_dashboard&error=oauth_failed');
+    exit;
+}
+
+$auth_code = $_GET['code'];
+$user_id = $_SESSION['user']['id'];
+
+// Handle callback and save tokens
+$result = GoogleCalendarController::handleCallback($user_id, $auth_code);
+
+if ($result) {
+    // Success - check if there's a pending event to auto-add
+    // (This would be set via sessionStorage from post_registration_modal.php)
+    // For now, just redirect to dashboard with success message
+    header('Location: ../index.php?page=user_dashboard&calendar_connected=1');
+} else {
+    // Failed
+    header('Location: ../index.php?page=user_dashboard&error=calendar_connection_failed');
+}
+
+exit;
