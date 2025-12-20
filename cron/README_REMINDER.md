@@ -4,6 +4,8 @@
 
 Sistem ini akan mengirim email reminder otomatis ke peserta event **24 jam sebelum event dimulai**.
 
+**Note:** Hanya mengirim ke user yang mengaktifkan email reminders di dashboard (`email_reminders_enabled = 1`).
+
 ## 🔧 Konfigurasi
 
 ### 1. Setup Email (SMTP)

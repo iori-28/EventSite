@@ -85,6 +85,8 @@ EventSite/
 │   │   │   ├── google-calendar-disconnect.php
 │   │   │   ├── google-calendar-toggle-auto-add.php
 │   │   │   └── google-calendar-auto-add.php
+│   │   ├── ✅ User Preferences:
+│   │   │   └── toggle_email_reminders.php (Email reminder ON/OFF)
 │   │   ├── ❌ Deprecated (Bisa Dihapus):
 │   │   │   ├── google-callback.php.deprecated
 │   │   │   └── google-calendar-callback.php.deprecated
@@ -173,7 +175,10 @@ Reusable business services:
 User interface templates:
 - Admin dashboard pages
 - Panitia management pages
-- User pages
+- User pages (with calendar view, smart filters, QR code modals)
+  - **user_my_events.php**: FullCalendar integration, list/calendar toggle, smart filters
+  - **user_dashboard.php**: Email reminders preference widget
+  - **event-detail.php**: QR code button & cancel registration (conditional)
 - Reusable components
 
 ### `public/`

@@ -92,12 +92,19 @@ class GoogleCalendarController
 
             // Save tokens to database
             $db = Database::connect();
+
+            // Check if user already has auto_add preference, jika belum set default 0
+            $checkStmt = $db->prepare("SELECT calendar_auto_add FROM users WHERE id = ?");
+            $checkStmt->execute([$user_id]);
+            $current = $checkStmt->fetch(PDO::FETCH_ASSOC);
+            $auto_add_value = $current ? $current['calendar_auto_add'] : 0; // Default OFF
+
             $stmt = $db->prepare("
                 UPDATE users 
                 SET google_calendar_token = ?,
                     google_calendar_refresh_token = ?,
                     google_calendar_token_expires = ?,
-                    calendar_auto_add = 1,
+                    calendar_auto_add = ?,
                     calendar_connected_at = NOW()
                 WHERE id = ?
             ");
@@ -106,6 +113,7 @@ class GoogleCalendarController
                 $access_token,
                 $refresh_token,
                 $expires_at,
+                $auto_add_value,
                 $user_id
             ]);
 

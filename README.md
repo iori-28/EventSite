@@ -5,15 +5,19 @@
 **Event Management System** berbasis web untuk memudahkan pengelolaan event kampus dengan fitur lengkap:
 - ✅ Multi-role authentication (Admin, Panitia, User) + Google OAuth
 - ✅ Event creation & approval workflow
-- ✅ QR Code attendance tracking
-- ✅ Automated email notifications & reminders
+- ✅ QR Code attendance tracking (email reminders + event detail page)
+- ✅ Automated email notifications & reminders (with user preference toggle)
 - ✅ Certificate generation (PDF with templates)
 - ✅ Calendar integration (Google Calendar OAuth - Hybrid auto-add/manual)
 - ✅ Google Calendar auto-sync on event registration (optional)
 - ✅ .ics export untuk Outlook/Apple Calendar
+- ✅ Interactive Calendar View (FullCalendar.js with Indonesian locale)
+- ✅ Smart Filters & Live Search (filter by status, time, search by title)
+- ✅ View Persistence (localStorage - remembers user's list/calendar preference)
 - ✅ Analytics dashboard with AI-powered recommendations
 - ✅ CSV export functionality (participants, categories, full reports)
-- ✅ Event reminders via cron (H-1 dan H-0)
+- ✅ Event reminders via cron (H-1 dan H-0, respects user preferences)
+- ✅ Cancel Registration (in list view & event detail page)
 
 **📚 Untuk dokumentasi lengkap backend & frontend architecture, baca: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**
 
@@ -307,7 +311,10 @@ Berisi file tampilan (UI) yang di-render oleh `public/index.php` berdasarkan rol
 
 * **admin_*.php** — Dashboard & fitur admin (approval event, manage users, analytics, event completion)
 * **panitia_*.php** — Dashboard & fitur panitia (create event, manage participants, attendance)
-* **user_*.php** — Dashboard & fitur user biasa (browse events, my events, certificates)
+* **user_*.php** — Dashboard & fitur user biasa (browse events, my events with calendar view, certificates, email preferences)
+  * **user_my_events.php** — List & Calendar views with smart filters, live search, QR code modal
+  * **user_dashboard.php** — Email reminders preference toggle widget
+  * **event-detail.php** — QR code access & cancel registration (conditional)
 * **login.php / register.php** — Autentikasi
 
 ### **Routing:**
