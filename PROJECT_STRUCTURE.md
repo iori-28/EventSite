@@ -8,10 +8,18 @@ Updated project structure with organized folders for better maintainability.
 EventSite/
 ├── docs/                          ← 📄 Documentation
 │   ├── README.md
-│   ├── BUG_FIXES_REPORT.md
-│   ├── CHANGELOG_EVENT_COMPLETION.md
-│   ├── WORKFLOW_IMPLEMENTATION.md
-│   └── NOTIFICATION_SYSTEM_COMPLETE.md
+│   ├── API_ENDPOINTS.md
+│   ├── ARCHITECTURE.md
+│   ├── AUTH_FILES_EXPLANATION.md
+│   ├── CODE_COMMENTS_GUIDE.md
+│   ├── EMAIL_CONFIGURATION_GUIDE.md
+│   ├── GOOGLE_CALENDAR_API_SETUP.md
+│   ├── GOOGLE_OAUTH_SETUP.md
+│   ├── HOSTING_DEPLOYMENT_GUIDE.md
+│   ├── PROJECT_COMPLETION_REPORT.md
+│   ├── QR_CODE_ATTENDANCE.md
+│   ├── QR_USAGE_GUIDE.md
+│   └── diagrams/
 │
 ├── database/
 │   └── migrations/                ← 🗄️ SQL Migrations
@@ -29,6 +37,7 @@ EventSite/
 │   └── test_reminder.bat
 │
 ├── config/                        ← ⚙️ Configuration
+│   ├── AuthMiddleware.php
 │   ├── db.php
 │   └── env.php
 │
@@ -47,10 +56,11 @@ EventSite/
 │   └── Notification.php
 │
 ├── services/                      ← 🛠️ Services
-│   ├── NotificationService.php
-│   ├── CertificateService.php
+│   ├── AnalyticsService.php
 │   ├── CalendarService.php
-│   └── GoogleCalendarService.php
+│   ├── CertificateService.php
+│   ├── NotificationService.php
+│   └── QRCodeService.php
 │
 ├── views/                         ← 🎨 UI Templates
 │   ├── admin_*.php              (Admin pages)
@@ -90,10 +100,16 @@ EventSite/
 ## 📚 Folder Purposes
 
 ### `docs/`
-Project documentation including:
-- Bug reports and fixes
-- Feature changelogs
-- Implementation guides
+PrAPI endpoint documentation
+- System architecture
+- Authentication system guide
+- Email configuration
+- Google OAuth & Calendar setup
+- Hosting and deployment guides
+- QR code attendance system
+- Code comments guide
+- Project completion reports
+- Diagrams and visualizationss
 - System documentation
 
 ### `database/migrations/`
@@ -105,6 +121,7 @@ SQL migration files for schema changes:
 ### `scripts/`
 Utility scripts for development and maintenance:
 - Database migration tools
+- Authentication middleware
 - Event reminder automation
 - Development utilities
 - Password hash generators
@@ -128,10 +145,11 @@ Data access layer:
 - Entity representation
 
 ### `services/`
-Reusable business services:
-- Email notifications
-- Certificate generation
+ReAnalytics and reporting
 - Calendar integration
+- Certificate generation
+- Email notifications
+- QR code generation and validation
 - External API integrations
 
 ### `views/`
@@ -173,10 +191,17 @@ scripts\test_reminder.bat
 ### Development Server
 Access via: `http://localhost/EventSite/public/`
 
-## 📖 Documentation
-
-- **Bug Fixes:** See [docs/BUG_FIXES_REPORT.md](docs/BUG_FIXES_REPORT.md)
-- **Workflow:** See [docs/WORKFLOW_IMPLEMENTATION.md](docs/WORKFLOW_IMPLEMENTATION.md)
+## API Endpoints:** See [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md)
+- **Architecture:** See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Authentication:** See [docs/AUTH_FILES_EXPLANATION.md](docs/AUTH_FILES_EXPLANATION.md)
+- **Code Comments:** See [docs/CODE_COMMENTS_GUIDE.md](docs/CODE_COMMENTS_GUIDE.md)
+- **Email Setup:** See [docs/EMAIL_CONFIGURATION_GUIDE.md](docs/EMAIL_CONFIGURATION_GUIDE.md)
+- **Google Calendar:** See [docs/GOOGLE_CALENDAR_API_SETUP.md](docs/GOOGLE_CALENDAR_API_SETUP.md)
+- **Google OAuth:** See [docs/GOOGLE_OAUTH_SETUP.md](docs/GOOGLE_OAUTH_SETUP.md)
+- **Deployment:** See [docs/HOSTING_DEPLOYMENT_GUIDE.md](docs/HOSTING_DEPLOYMENT_GUIDE.md)
+- **Project Report:** See [docs/PROJECT_COMPLETION_REPORT.md](docs/PROJECT_COMPLETION_REPORT.md)
+- **QR Attendance:** See [docs/QR_CODE_ATTENDANCE.md](docs/QR_CODE_ATTENDANCE.md)
+- **QR Usage:** See [docs/QR_USAGE_GUIDE.md](docs/QR_USAGE_GUIDE
 - **Notifications:** See [docs/NOTIFICATION_SYSTEM_COMPLETE.md](docs/NOTIFICATION_SYSTEM_COMPLETE.md)
 - **Changelog:** See [docs/CHANGELOG_EVENT_COMPLETION.md](docs/CHANGELOG_EVENT_COMPLETION.md)
 
@@ -199,7 +224,7 @@ Remove-Item logs\*.log
 ## 🤝 Contributing
 
 When adding new features:
-1. Create migration files in `database/migrations/`
+1. Create migration files i20`database/migrations/`
 2. Update documentation in `docs/`
 3. Add utility scripts to `scripts/`
 4. Follow existing folder structure
