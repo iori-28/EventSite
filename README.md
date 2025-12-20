@@ -8,7 +8,9 @@
 - ✅ QR Code attendance tracking
 - ✅ Automated email notifications & reminders
 - ✅ Certificate generation (PDF with templates)
-- ✅ Calendar integration (Google Calendar, .ics export)
+- ✅ Calendar integration (Google Calendar OAuth - Hybrid auto-add/manual)
+- ✅ Google Calendar auto-sync on event registration (optional)
+- ✅ .ics export untuk Outlook/Apple Calendar
 - ✅ Analytics dashboard with AI-powered recommendations
 - ✅ CSV export functionality (participants, categories, full reports)
 - ✅ Event reminders via cron (H-1 dan H-0)
@@ -90,7 +92,8 @@ EventSite/
 │   ├── EventController.php
 │   ├── ParticipantController.php
 │   ├── NotificationController.php
-│   └── CertificateController.php
+│   ├── CertificateController.php
+│   └── GoogleCalendarController.php (OAuth & token management)
 │
 ├── models/
 │   ├── User.php
@@ -102,7 +105,7 @@ EventSite/
 ├── services/
 │   ├── NotificationService.php (Email via PHPMailer)
 │   ├── CertificateService.php (PDF generation)
-│   ├── CalendarService.php (Google Calendar + .ics export)
+│   ├── CalendarService.php (Google Calendar OAuth + .ics export + auto-add)
 │   ├── QRCodeService.php (QR code generation)
 │   └── AnalyticsService.php (Metrics & CSV export)
 │
@@ -136,6 +139,7 @@ EventSite/
 │   ├── CODE_COMMENTS_GUIDE.md
 │   ├── EMAIL_CONFIGURATION_GUIDE.md
 │   ├── GOOGLE_CALENDAR_API_SETUP.md
+│   ├── GOOGLE_CALENDAR_INTEGRATION_FIX.md 🆕 (OAuth setup & troubleshooting)
 │   ├── GOOGLE_OAUTH_SETUP.md
 │   ├── HOSTING_DEPLOYMENT_GUIDE.md
 │   ├── PROJECT_COMPLETION_REPORT.md
@@ -147,12 +151,16 @@ EventSite/
 │   └── migrations/
 │       ├── README.md
 │       ├── dump_db.sql
-│       └── migration_*.sql
+│       ├── migration_completed_status.sql
+│       ├── migration_event_completion_workflow.sql
+│       └── migration_google_calendar_oauth.sql 🆕 (OAuth tokens storage)
 │
 ├── scripts/
 │   ├── README.md
 │   ├── check_event_time.php
-│   └── run_event_reminders.bat
+│   ├── run_event_reminders.bat
+│   ├── check_calendar_migration.php 🆕 (Verify calendar migration)
+│   └── run_calendar_migration.php 🆕 (Run calendar migration)
 │
 ├── composer.json
 ├── .env
@@ -325,17 +333,24 @@ File yang bisa diakses langsung oleh browser.
 
 Semua AJAX request dari frontend dikirim ke sini.
 
-| Endpoint                      | Controller yang dipanggil |
-| ----------------------------- | ------------------------- |
-| `auth.php`                    | AuthController            |
-| `events.php`                  | EventController           |
-| `participants.php`            | ParticipantController     |
-| `participants_attendance.php` | ParticipantController     |
-| `notifications.php`           | NotificationController    |
-| `certificates.php`            | CertificateController     |
-| `admin_event_completion.php`  | EventController           |
-| `event_approval.php`          | EventController           |
-| `users.php`                   | AuthController            |
+| Endpoint                              | Controller yang dipanggil |
+| ------------------------------------- | ------------------------- |
+| `auth.php`                            | AuthController            |
+| `events.php`                          | EventController           |
+| `participants.php`                    | ParticipantController     |
+| `participants_attendance.php`         | ParticipantController     |
+| `notifications.php`                   | NotificationController    |
+| `certificates.php`                    | CertificateController     |
+| `admin_event_completion.php`          | EventController           |
+| `event_approval.php`                  | EventController           |
+| `users.php`                           | AuthController            |
+| **Google OAuth & Calendar APIs:**     |                           |
+| `google-login.php`                    | Initiate Google Login     |
+| `google-oauth-callback.php` 🆕         | Universal OAuth Handler   |
+| `google-calendar-connect.php`         | Initiate Calendar Connect |
+| `google-calendar-disconnect.php`      | Disconnect Calendar       |
+| `google-calendar-toggle-auto-add.php` | Toggle Auto-Add           |
+| `google-calendar-auto-add.php`        | Manual Add Event          |
 
 ### **public/components/**
 
@@ -344,6 +359,22 @@ Reusable UI components (sidebar, navbar, dll) yang di-include di views.
 ### **public/certificates/**
 
 Folder untuk menyimpan file sertifikat yang di-generate (.html).
+
+### **Deprecated Files** 🗑️
+
+File-file berikut **TIDAK DIGUNAKAN LAGI** (safe to delete):
+- ❌ `google-callback.php.deprecated` - Replaced by `google-oauth-callback.php`
+- ❌ `google-calendar-callback.php.deprecated` - Replaced by `google-oauth-callback.php`
+
+**Reason:** Unified into single universal callback handler.
+
+**Active Google OAuth Files** (JANGAN HAPUS!):
+- ✅ `google-login.php` - Initiate login
+- ✅ `google-oauth-callback.php` - Universal callback (PENTING!)
+- ✅ `google-calendar-connect.php` - Connect calendar
+- ✅ `google-calendar-disconnect.php` - Disconnect
+- ✅ `google-calendar-toggle-auto-add.php` - Toggle auto-add
+- ✅ `google-calendar-auto-add.php` - Manual add event
 
 **Flow lengkap request browser:**
 

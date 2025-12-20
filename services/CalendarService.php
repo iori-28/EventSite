@@ -244,4 +244,115 @@ class CalendarService
 
         return $folded;
     }
+
+    /**
+     * Auto-add event to user's Google Calendar using OAuth
+     * 
+     * Method ini automatically add event ke Google Calendar user
+     * menggunakan OAuth access token yang sudah disimpan.
+     * 
+     * Flow:
+     * 1. Get valid access token (auto refresh jika expired)
+     * 2. Create Google Calendar event object
+     * 3. Insert event via Google Calendar API
+     * 4. Return event ID atau error
+     * 
+     * Requirements:
+     * - User harus sudah connect Google Calendar
+     * - calendar_auto_add harus enabled
+     * - Access token valid atau bisa di-refresh
+     * 
+     * @param int $user_id User ID yang akan auto-add event
+     * @param array $event Event data dengan keys: id, title, description, location, start_at, end_at
+     * @return array Result dengan keys: success (bool), event_id (string|null), error (string|null)
+     */
+    public static function autoAddToGoogleCalendar($user_id, $event)
+    {
+        try {
+            // Load Google Calendar Controller
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/GoogleCalendarController.php';
+
+            // Check if auto-add is enabled
+            if (!GoogleCalendarController::isAutoAddEnabled($user_id)) {
+                return [
+                    'success' => false,
+                    'event_id' => null,
+                    'error' => 'Auto-add not enabled'
+                ];
+            }
+
+            // Get valid access token (auto refresh if expired)
+            $access_token = GoogleCalendarController::getValidAccessToken($user_id);
+            if (!$access_token) {
+                return [
+                    'success' => false,
+                    'event_id' => null,
+                    'error' => 'Failed to get valid access token'
+                ];
+            }
+
+            // Prepare event data untuk Google Calendar API
+            $start_dt = new DateTime($event['start_at'], new DateTimeZone('Asia/Jakarta'));
+            $end_dt = new DateTime($event['end_at'], new DateTimeZone('Asia/Jakarta'));
+
+            $google_event = [
+                'summary' => $event['title'],
+                'description' => strip_tags($event['description'] ?? ''),
+                'location' => $event['location'] ?? '',
+                'start' => [
+                    'dateTime' => $start_dt->format('c'), // ISO 8601 format
+                    'timeZone' => 'Asia/Jakarta',
+                ],
+                'end' => [
+                    'dateTime' => $end_dt->format('c'),
+                    'timeZone' => 'Asia/Jakarta',
+                ],
+                'reminders' => [
+                    'useDefault' => false,
+                    'overrides' => [
+                        ['method' => 'email', 'minutes' => 24 * 60], // 1 day before
+                        ['method' => 'popup', 'minutes' => 60], // 1 hour before
+                    ],
+                ],
+            ];
+
+            // Call Google Calendar API untuk insert event
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://www.googleapis.com/calendar/v3/calendars/primary/events');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $access_token,
+                'Content-Type: application/json'
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($google_event));
+
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($http_code === 200) {
+                $result = json_decode($response, true);
+                return [
+                    'success' => true,
+                    'event_id' => $result['id'] ?? null,
+                    'error' => null
+                ];
+            } else {
+                error_log("Google Calendar API Error (HTTP $http_code): $response");
+                return [
+                    'success' => false,
+                    'event_id' => null,
+                    'error' => "API returned HTTP $http_code"
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("Auto-add Calendar Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'event_id' => null,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
 }

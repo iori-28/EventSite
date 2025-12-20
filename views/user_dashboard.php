@@ -6,6 +6,8 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/AuthMiddleware.php';
 Auth::check('user');
 
 require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/config/db.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/GoogleCalendarController.php';
+
 $db = Database::connect();
 $user_id = $_SESSION['user']['id'];
 
@@ -50,6 +52,9 @@ $stmt_notif = $db->prepare("
 ");
 $stmt_notif->execute([$user_id]);
 $notifications = $stmt_notif->fetchAll();
+
+// Get Google Calendar connection status
+$calendar_info = GoogleCalendarController::getConnectionInfo($user_id);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -101,6 +106,47 @@ $notifications = $stmt_notif->fetchAll();
                 </div>
             </div>
 
+            <!-- Google Calendar Connection Widget -->
+            <div class="card" style="margin-bottom: 30px; border-left: 4px solid <?= $calendar_info['connected'] ? '#28a745' : '#ffc107' ?>;">
+                <div class="card-body" style="padding: 20px;">
+                    <?php if ($calendar_info['connected']): ?>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 8px 0; color: #28a745; font-size: 16px;">✅ Google Calendar Terhubung</h4>
+                                <p style="margin: 0; font-size: 13px; color: var(--text-muted);">
+                                    Terhubung sejak <?= date('d M Y', strtotime($calendar_info['connected_at'])) ?>
+                                </p>
+                                <div style="margin-top: 12px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox"
+                                            id="toggleAutoAdd"
+                                            <?= $calendar_info['auto_add'] ? 'checked' : '' ?>
+                                            onchange="toggleAutoAdd(this.checked)"
+                                            style="width: 18px; height: 18px; cursor: pointer;">
+                                        <span style="font-size: 14px;">Auto-add event ke kalender saat mendaftar</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <button onclick="disconnectCalendar()" class="btn btn-outline btn-sm" style="border-color: #dc3545; color: #dc3545;">
+                                Putuskan Koneksi
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0 0 8px 0; color: #ffc107; font-size: 16px;">📅 Hubungkan Google Calendar</h4>
+                                <p style="margin: 0; font-size: 13px; color: var(--text-muted);">
+                                    Sinkronkan event secara otomatis ke Google Calendar Anda. Event baru akan langsung masuk ke kalender tanpa perlu klik manual!
+                                </p>
+                            </div>
+                            <a href="api/google-calendar-connect.php" class="btn btn-primary btn-sm">
+                                Hubungkan Sekarang
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <div class="grid grid-2" style="gap: 30px;">
                 <!-- Upcoming Events Widget -->
                 <div class="card">
@@ -125,6 +171,62 @@ $notifications = $stmt_notif->fetchAll();
                                     <span class="badge badge-info">Registered</span>
                                 </a>
                             <?php endforeach; ?>
+
+                            <script>
+                                // Toggle auto-add preference
+                                function toggleAutoAdd(enabled) {
+                                    fetch('api/google-calendar-toggle-auto-add.php', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/x-www-form-urlencoded',
+                                            },
+                                            body: 'enabled=' + (enabled ? '1' : '0')
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                alert(enabled ? '✅ Auto-add diaktifkan!' : '⚠️ Auto-add dinonaktifkan');
+                                            } else {
+                                                alert('❌ Gagal mengubah pengaturan');
+                                                // Revert checkbox
+                                                document.getElementById('toggleAutoAdd').checked = !enabled;
+                                            }
+                                        })
+                                        .catch(error => {
+                                            alert('❌ Terjadi kesalahan');
+                                            document.getElementById('toggleAutoAdd').checked = !enabled;
+                                        });
+                                }
+
+                                // Disconnect calendar
+                                function disconnectCalendar() {
+                                    if (!confirm('Yakin ingin memutuskan koneksi Google Calendar?')) return;
+
+                                    fetch('api/google-calendar-disconnect.php', {
+                                            method: 'POST'
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                alert('✅ Koneksi berhasil diputus');
+                                                location.reload();
+                                            } else {
+                                                alert('❌ Gagal memutuskan koneksi');
+                                            }
+                                        })
+                                        .catch(error => {
+                                            alert('❌ Terjadi kesalahan');
+                                        });
+                                }
+
+                                // Show success message if calendar just connected
+                                const urlParams = new URLSearchParams(window.location.search);
+                                if (urlParams.get('calendar_connected') === '1') {
+                                    alert('✅ Google Calendar berhasil terhubung!');
+                                    // Clean URL
+                                    window.history.replaceState({}, document.title, window.location.pathname + '?page=user_dashboard');
+                                }
+                            </script>
                         <?php else: ?>
                             <div class="text-center" style="padding: 40px 20px;">
                                 <p style="color: var(--text-muted);">Belum ada event yang akan datang.</p>
