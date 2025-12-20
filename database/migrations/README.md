@@ -11,6 +11,12 @@ This folder contains SQL migration files for database schema changes.
   - Adds foreign key constraints
   - Date: 2025-12-15
 
+- **migration_add_email_reminders_toggle.sql** - Email reminders user preference
+  - Adds `email_reminders_enabled` column to users table
+  - Adds index for query performance
+  - Default: enabled (1)
+  - Date: 2025-12-20
+
 - **migration_completed_status.sql** - Basic completed status for events
   - Adds `completed` status to events table
   - Date: Earlier version (superseded by workflow migration)

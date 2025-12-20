@@ -255,7 +255,7 @@ showPostRegistrationModal({
         optionsContainer.innerHTML = '';
 
         if (eventData.calendar_connected && eventData.auto_add_enabled) {
-            // User already connected - show auto-add option
+            // KONDISI 1: User connected & auto-add ON - show auto-add option
             optionsContainer.innerHTML = `
             <button class="post-reg-calendar-btn primary" onclick="autoAddToCalendar()">
                 <div class="post-reg-btn-icon">📅</div>
@@ -272,14 +272,32 @@ showPostRegistrationModal({
                 </div>
             </a>
         `;
+        } else if (eventData.calendar_connected && !eventData.auto_add_enabled) {
+            // KONDISI 2: User connected tapi auto-add OFF - show manual add to Google Calendar
+            optionsContainer.innerHTML = `
+            <button class="post-reg-calendar-btn primary" onclick="manualAddToCalendar()">
+                <div class="post-reg-btn-icon">📅</div>
+                <div class="post-reg-btn-content">
+                    <div class="post-reg-btn-title">Tambahkan ke Google Calendar</div>
+                    <div class="post-reg-btn-desc">Event akan ditambahkan ke kalender Anda</div>
+                </div>
+            </button>
+            <a href="index.php?page=event-detail&id=${eventData.event_id}" class="post-reg-calendar-btn">
+                <div class="post-reg-btn-icon">📥</div>
+                <div class="post-reg-btn-content">
+                    <div class="post-reg-btn-title">Download .ics</div>
+                    <div class="post-reg-btn-desc">Download file kalender untuk import manual</div>
+                </div>
+            </a>
+        `;
         } else {
-            // User not connected - show connect option
+            // KONDISI 3: User not connected - show connect option
             optionsContainer.innerHTML = `
             <button class="post-reg-calendar-btn primary" onclick="connectGoogleCalendar()">
                 <div class="post-reg-btn-icon">🔗</div>
                 <div class="post-reg-btn-content">
                     <div class="post-reg-btn-title">Hubungkan Google Calendar</div>
-                    <div class="post-reg-btn-desc">Auto-add event untuk pendaftaran berikutnya</div>
+                    <div class="post-reg-btn-desc">Sinkronkan event ke kalender Anda</div>
                 </div>
             </button>
             <a href="index.php?page=event-detail&id=${eventData.event_id}" class="post-reg-calendar-btn">
@@ -307,7 +325,7 @@ showPostRegistrationModal({
     }
 
     /**
-     * Auto-add event to Google Calendar
+     * Auto-add event to Google Calendar (untuk user dengan auto-add enabled)
      */
     function autoAddToCalendar() {
         if (!currentEventData) return;
@@ -330,6 +348,44 @@ showPostRegistrationModal({
                     alert('✅ Event berhasil ditambahkan ke Google Calendar!');
                     closePostRegModal();
                     // Redirect to my events or dashboard
+                    window.location.href = 'index.php?page=user_my_events&calendar_added=1';
+                } else {
+                    alert('❌ Gagal menambahkan ke Google Calendar: ' + (data.error || 'Unknown error'));
+                    document.getElementById('postRegContent').style.display = 'block';
+                    document.getElementById('postRegLoading').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                alert('❌ Terjadi kesalahan: ' + error);
+                document.getElementById('postRegContent').style.display = 'block';
+                document.getElementById('postRegLoading').style.display = 'none';
+            });
+    }
+
+    /**
+     * Manual add event to Google Calendar (untuk user connected tapi auto-add OFF)
+     * Sama seperti auto-add, tapi tanpa cek auto_add_enabled
+     */
+    function manualAddToCalendar() {
+        if (!currentEventData) return;
+
+        // Show loading
+        document.getElementById('postRegContent').style.display = 'none';
+        document.getElementById('postRegLoading').style.display = 'block';
+
+        // Call API dengan force_add=1 parameter untuk bypass auto-add check
+        fetch('api/google-calendar-auto-add.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `event_id=${currentEventData.event_id}&force_add=1`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Event berhasil ditambahkan ke Google Calendar!');
+                    closePostRegModal();
                     window.location.href = 'index.php?page=user_my_events&calendar_added=1';
                 } else {
                     alert('❌ Gagal menambahkan ke Google Calendar: ' + (data.error || 'Unknown error'));

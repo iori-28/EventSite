@@ -62,13 +62,20 @@ if (!$event) {
 
 // Check if user already registered
 $is_registered = false;
+$participant_qr = null;
+$registration_status = null;
 if (isset($_SESSION['user'])) {
-    $stmt = $db->prepare("SELECT id FROM participants WHERE user_id = :user_id AND event_id = :event_id");
+    $stmt = $db->prepare("SELECT id, qr_token, status FROM participants WHERE user_id = :user_id AND event_id = :event_id");
     $stmt->execute([
         ':user_id' => $_SESSION['user']['id'],
         ':event_id' => $event_id
     ]);
-    $is_registered = $stmt->fetch() !== false;
+    $participant = $stmt->fetch();
+    if ($participant) {
+        $is_registered = true;
+        $participant_qr = $participant['qr_token'];
+        $registration_status = $participant['status'];
+    }
 }
 
 $is_full = $event['participant_count'] >= $event['capacity'];
@@ -93,6 +100,10 @@ if ($from === 'admin_manage_events') {
     $back_text = '← Kembali ke Event Saya';
 } elseif ($from === 'user_my_events') {
     $back_url = 'index.php?page=user_my_events';
+    // Preserve view parameter if exists
+    if (isset($_GET['view']) && $_GET['view'] === 'calendar') {
+        $back_url .= '&view=calendar';
+    }
     $back_text = '← Kembali ke Event Saya';
 } elseif ($from === 'user_browse_events') {
     $back_url = 'index.php?page=user_browse_events';
@@ -383,6 +394,14 @@ if ($from === 'admin_manage_events') {
                             <div class="alert alert-success" style="padding: 15px; background: #d4edda; color: #155724; border-radius: 8px; text-align: center; margin-top: 20px;">
                                 ✅ Anda sudah terdaftar
                             </div>
+                            <button onclick="showQRCode('<?= htmlspecialchars($participant_qr) ?>')" class="btn btn-primary" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 15px; background: #28a745; border-color: #28a745;">
+                                📱 Lihat QR Code Kehadiran
+                            </button>
+                            <?php if ($registration_status === 'registered'): ?>
+                                <button onclick="cancelRegistration(<?= $event['id'] ?>)" class="btn btn-outline" style="width: 100%; padding: 16px; font-size: 16px; margin-top: 10px; color: #dc3545; border-color: #dc3545;">
+                                    ❌ Batalkan Pendaftaran
+                                </button>
+                            <?php endif; ?>
                         <?php elseif ($can_register): ?>
                             <form id="registerForm" onsubmit="registerEvent(event)" style="margin-top: 20px;">
                                 <input type="hidden" name="action" value="register">
@@ -600,6 +619,73 @@ if ($from === 'admin_manage_events') {
                     }
                 }, 300);
             }, 3000);
+        }
+    </script>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center;">
+            <h3 style="margin-bottom: 20px; color: var(--primary-color);">QR Code Kehadiran</h3>
+            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+            <p style="color: #666; font-size: 14px; margin: 20px 0;">Tunjukkan QR code ini kepada panitia saat check-in</p>
+            <button onclick="closeQRModal()" class="btn btn-outline" style="width: 100%; padding: 12px;">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        function showQRCode(qrToken) {
+            const modal = document.getElementById('qr-modal');
+            const qrcodeDiv = document.getElementById('qrcode');
+
+            // Clear previous QR code
+            qrcodeDiv.innerHTML = '';
+
+            // Generate new QR code
+            new QRCode(qrcodeDiv, {
+                text: qrToken,
+                width: 256,
+                height: 256,
+                colorDark: "#1a1a1a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Show modal
+            modal.style.display = 'flex';
+        }
+
+        function closeQRModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
+        function cancelRegistration(eventId) {
+            if (!confirm('Apakah Anda yakin ingin membatalkan pendaftaran event ini?')) return;
+
+            const formData = new FormData();
+            formData.append('action', 'cancel');
+            formData.append('event_id', eventId);
+
+            fetch('api/participants.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    const status = data.trim();
+                    if (status === 'CANCEL_SUCCESS') {
+                        alert('Pendaftaran berhasil dibatalkan.');
+                        location.reload();
+                    } else {
+                        alert('Gagal membatalkan pendaftaran: ' + status);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert('Terjadi kesalahan koneksi.');
+                });
         }
     </script>
 </body>

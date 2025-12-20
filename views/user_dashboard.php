@@ -55,6 +55,11 @@ $notifications = $stmt_notif->fetchAll();
 
 // Get Google Calendar connection status
 $calendar_info = GoogleCalendarController::getConnectionInfo($user_id);
+
+// Get user's email reminder preference
+$stmt_reminder = $db->prepare("SELECT email_reminders_enabled FROM users WHERE id = ?");
+$stmt_reminder->execute([$user_id]);
+$reminder_enabled = $stmt_reminder->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -147,6 +152,33 @@ $calendar_info = GoogleCalendarController::getConnectionInfo($user_id);
                 </div>
             </div>
 
+            <!-- Email Reminders Widget -->
+            <div class="card" style="margin-bottom: 30px; border-left: 4px solid <?= $reminder_enabled ? '#28a745' : '#dc3545' ?>;">
+                <div class="card-body" style="padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 8px 0; color: <?= $reminder_enabled ? '#28a745' : '#dc3545' ?>; font-size: 16px;">
+                                <?= $reminder_enabled ? '🔔 Email Reminders Aktif' : '🔕 Email Reminders Nonaktif' ?>
+                            </h4>
+                            <p style="margin: 0 0 12px 0; font-size: 13px; color: var(--text-muted);">
+                                <?= $reminder_enabled ? 'Anda akan menerima email reminder H-1 dan H-0 untuk event yang Anda daftar' : 'Anda tidak akan menerima email reminder otomatis' ?>
+                            </p>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox"
+                                    id="toggleEmailReminders"
+                                    <?= $reminder_enabled ? 'checked' : '' ?>
+                                    onchange="toggleEmailReminders(this.checked)"
+                                    style="width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-size: 14px; font-weight: 500;">Aktifkan email reminders untuk semua event</span>
+                            </label>
+                        </div>
+                        <div style="font-size: 48px; opacity: 0.3;">
+                            <?= $reminder_enabled ? '📧' : '📭' ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid grid-2" style="gap: 30px;">
                 <!-- Upcoming Events Widget -->
                 <div class="card">
@@ -225,6 +257,35 @@ $calendar_info = GoogleCalendarController::getConnectionInfo($user_id);
                                     alert('✅ Google Calendar berhasil terhubung!');
                                     // Clean URL
                                     window.history.replaceState({}, document.title, window.location.pathname + '?page=user_dashboard');
+                                }
+
+                                /**
+                                 * Toggle email reminders preference
+                                 */
+                                function toggleEmailReminders(enabled) {
+                                    fetch('api/toggle_email_reminders.php', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/x-www-form-urlencoded',
+                                            },
+                                            body: `enabled=${enabled ? 1 : 0}`
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                alert(enabled ? '✅ Email reminders diaktifkan' : '🔕 Email reminders dinonaktifkan');
+                                                location.reload();
+                                            } else {
+                                                alert('❌ Gagal mengubah pengaturan: ' + (data.error || 'Unknown error'));
+                                                // Revert checkbox
+                                                document.getElementById('toggleEmailReminders').checked = !enabled;
+                                            }
+                                        })
+                                        .catch(error => {
+                                            alert('❌ Terjadi kesalahan');
+                                            // Revert checkbox
+                                            document.getElementById('toggleEmailReminders').checked = !enabled;
+                                        });
                                 }
                             </script>
                         <?php else: ?>

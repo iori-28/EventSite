@@ -30,9 +30,15 @@ if (!isset($_POST['event_id'])) {
 
 $user_id = $_SESSION['user']['id'];
 $event_id = $_POST['event_id'];
+$force_add = isset($_POST['force_add']) ? true : false; // Support force add
 
 // Get event data
 $event = Event::getById($event_id);
+
+// Add force_add flag ke event data
+if ($event) {
+    $event['force_add'] = $force_add;
+}
 
 if (!$event) {
     echo json_encode(['success' => false, 'error' => 'Event not found']);

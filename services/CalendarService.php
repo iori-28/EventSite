@@ -272,8 +272,10 @@ class CalendarService
             // Load Google Calendar Controller
             require_once $_SERVER['DOCUMENT_ROOT'] . '/EventSite/controllers/GoogleCalendarController.php';
 
-            // Check if auto-add is enabled
-            if (!GoogleCalendarController::isAutoAddEnabled($user_id)) {
+            // Check if auto-add is enabled (skip check jika force_add = true)
+            $force_add = $event['force_add'] ?? false; // Allow force add untuk manual button
+
+            if (!$force_add && !GoogleCalendarController::isAutoAddEnabled($user_id)) {
                 return [
                     'success' => false,
                     'event_id' => null,

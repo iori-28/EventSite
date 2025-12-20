@@ -120,7 +120,7 @@ try {
 
         logMessage("Processing event #{$eventId}: {$eventTitle}");
 
-        // Get participants for this event (all statuses) with QR token
+        // Get participants for this event with email_reminders_enabled check
         $participantQuery = "
             SELECT 
                 p.id as participant_id,
@@ -131,6 +131,7 @@ try {
             FROM participants p
             JOIN users u ON p.user_id = u.id
             WHERE p.event_id = :event_id
+            AND u.email_reminders_enabled = 1
         ";
 
         $participantStmt = $db->prepare($participantQuery);
